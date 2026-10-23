@@ -2,9 +2,11 @@ import {
   Column,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Animal } from '../../animales/entities/animal.entity';
 import { Usuario } from './usuario.entity';
 
 @Entity('fundacion')
@@ -30,4 +32,8 @@ export class Fundacion {
 
   @Column({ type: 'varchar' })
   ciudad: string;
+
+  // Lado inverso 1:N (no crea columnas). La FK está en animal.fundacion_id.
+  @OneToMany(() => Animal, (animal) => animal.fundacion)
+  animales: Animal[];
 }
