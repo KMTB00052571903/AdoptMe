@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { UsuariosModule } from './usuarios/usuarios.module';
 
 @Module({
   imports: [
@@ -18,9 +19,10 @@ import { AppService } from './app.service';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
-        synchronize: false, // se decidirá en la Etapa 4 (migraciones vs. sincronización)
+        synchronize: false, // las tablas solo cambian con migraciones (src/database)
       }),
     }),
+    UsuariosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
