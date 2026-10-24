@@ -2,12 +2,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { RolUsuario } from '../../common/enums/rol-usuario.enum';
 import { Fundacion } from './fundacion.entity';
 import { Adoptante } from './adoptante.entity';
+import { Notificacion } from '../../notificaciones/entities/notificacion.entity';
 
 @Entity('usuario')
 export class Usuario {
@@ -20,7 +22,9 @@ export class Usuario {
   @Column({ type: 'varchar', unique: true })
   email: string;
 
-  @Column({ name: 'password_hash', type: 'varchar' })
+  // select: false -> las consultas normales NO traen el hash.
+  // El login debe pedirlo explícitamente (select: { passwordHash: true }).
+  @Column({ name: 'password_hash', type: 'varchar', select: false })
   passwordHash: string;
 
   @Column({ type: 'enum', enum: RolUsuario })
@@ -36,4 +40,8 @@ export class Usuario {
 
   @OneToOne(() => Adoptante, (adoptante) => adoptante.usuario)
   adoptante?: Adoptante;
+
+  // Lado inverso 1:N (no crea columnas). La FK está en notificacion.usuario_id.
+  @OneToMany(() => Notificacion, (notificacion) => notificacion.usuario)
+  notificaciones: Notificacion[];
 }

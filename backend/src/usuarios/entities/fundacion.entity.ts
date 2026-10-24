@@ -30,8 +30,16 @@ export class Fundacion {
   @Column({ name: 'nombre_publico', type: 'varchar' })
   nombrePublico: string;
 
+  // Presentación de la fundación que ven los adoptantes. Obligatoria.
+  @Column({ type: 'text' })
+  descripcion: string;
+
   @Column({ type: 'varchar' })
   ciudad: string;
+
+  // Teléfono para que los adoptantes contacten a la fundación. Obligatorio.
+  @Column({ name: 'telefono_contacto', type: 'varchar' })
+  telefonoContacto: string;
 
   // Lado inverso 1:N (no crea columnas). La FK está en animal.fundacion_id.
   @OneToMany(() => Animal, (animal) => animal.fundacion)

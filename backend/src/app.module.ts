@@ -5,6 +5,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { AnimalesModule } from './animales/animales.module';
+import { SolicitudesModule } from './solicitudes/solicitudes.module';
+import { SeguimientoModule } from './seguimiento/seguimiento.module';
+import { NotificacionesModule } from './notificaciones/notificaciones.module';
 
 @Module({
   imports: [
@@ -25,6 +28,9 @@ import { AnimalesModule } from './animales/animales.module';
     }),
     UsuariosModule,
     AnimalesModule,
+    SolicitudesModule,
+    SeguimientoModule,
+    NotificacionesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

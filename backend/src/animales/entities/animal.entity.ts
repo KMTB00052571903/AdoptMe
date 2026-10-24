@@ -14,6 +14,7 @@ import { TamanoAnimal } from '../../common/enums/tamano-animal.enum';
 import { Fundacion } from '../../usuarios/entities/fundacion.entity';
 import { FichaSalud } from './ficha-salud.entity';
 import { FotoAnimal } from './foto-animal.entity';
+import { SolicitudAdopcion } from '../../solicitudes/entities/solicitud-adopcion.entity';
 
 @Entity('animal')
 export class Animal {
@@ -44,8 +45,9 @@ export class Animal {
   @Column({ name: 'raza_aproximada', type: 'varchar', nullable: true })
   razaAproximada: string | null;
 
-  @Column({ name: 'edad_aprox_meses', type: 'int' })
-  edadAproxMeses: number;
+  // Mismo nombre de columna que en el diccionario de datos del D1.
+  @Column({ name: 'edad_aproximada_meses', type: 'int' })
+  edadAproximadaMeses: number;
 
   @Column({ type: 'enum', enum: TamanoAnimal })
   tamano: TamanoAnimal;
@@ -57,6 +59,14 @@ export class Animal {
   })
   estado: EstadoAnimal;
 
+  // Texto que ve el adoptante en la ficha del catálogo. Obligatorio.
+  @Column({ type: 'text' })
+  descripcion: string;
+
+  // Fecha en que el animal llegó a la fundación (solo día, sin hora). Obligatoria.
+  @Column({ name: 'fecha_ingreso', type: 'date' })
+  fechaIngreso: string;
+
   // Lado inverso 1:N (no crea columnas). La foto con orden 1 es la principal.
   @OneToMany(() => FotoAnimal, (foto) => foto.animal)
   fotos: FotoAnimal[];
@@ -67,4 +77,8 @@ export class Animal {
   // siempre exista una dependerá del servicio de creación de animales.
   @OneToOne(() => FichaSalud, (ficha) => ficha.animal, { cascade: ['insert'] })
   fichaSalud: FichaSalud;
+
+  // Lado inverso 1:N (no crea columnas). Histórico de solicitudes del animal.
+  @OneToMany(() => SolicitudAdopcion, (solicitud) => solicitud.animal)
+  solicitudes: SolicitudAdopcion[];
 }
