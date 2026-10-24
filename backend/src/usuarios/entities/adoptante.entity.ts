@@ -2,10 +2,12 @@ import {
   Column,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Usuario } from './usuario.entity';
+import { SolicitudAdopcion } from '../../solicitudes/entities/solicitud-adopcion.entity';
 
 @Entity('adoptante')
 export class Adoptante {
@@ -28,6 +30,14 @@ export class Adoptante {
   @Column({ type: 'varchar' })
   telefono: string;
 
+  // Dirección del hogar donde viviría el animal. Obligatoria.
+  @Column({ type: 'varchar' })
+  direccion: string;
+
   @Column({ name: 'experiencia_previa', type: 'text', nullable: true })
   experienciaPrevia: string | null;
+
+  // Lado inverso 1:N (no crea columnas). La FK está en solicitud_adopcion.adoptante_id.
+  @OneToMany(() => SolicitudAdopcion, (solicitud) => solicitud.adoptante)
+  solicitudes: SolicitudAdopcion[];
 }
