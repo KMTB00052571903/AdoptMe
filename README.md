@@ -204,5 +204,5 @@ El área entre paréntesis indica qué parte se tocó: `backend`, `frontend`, `d
 | Integrante | Rol | Funcionalidad que lidera |
 | --- | --- | --- |
 | Isabella D'Otero | A | F1 — Animales |
-| Rosa Kategami | B | F2 — Solicitudes |
+| Rosa Carvajal | B | F2 — Solicitudes |
 | Kami Takegami | C | Autenticación + F3 — Seguimiento |
