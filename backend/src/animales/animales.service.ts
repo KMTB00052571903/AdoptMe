@@ -8,10 +8,10 @@ import {
   Between,
   DataSource,
   FindOptionsWhere,
-  ILike,
   In,
   LessThanOrEqual,
   MoreThanOrEqual,
+  Raw,
   Repository,
 } from 'typeorm';
 import { EstadoAnimal } from '../common/enums/estado-animal.enum';
@@ -98,7 +98,18 @@ export class AnimalesService {
     };
     if (especie) where.especie = especie;
     if (tamano) where.tamano = tamano;
-    if (ciudad) where.fundacion = { ciudad: ILike(ciudad) };
+
+    // unaccent quita las tildes y ILIKE ignora mayúsculas:
+    // "bogota", "Bogota" y "BOGOTÁ" encuentran "Bogotá".
+    // :ciudad es un parámetro: TypeORM lo escapa (sin riesgo de inyección SQL).
+    if (ciudad) {
+      where.fundacion = {
+        ciudad: Raw(
+          (columna) => `unaccent(${columna}) ILIKE unaccent(:ciudad)`,
+          { ciudad },
+        ),
+      };
+    }
 
     if (edadMinMeses !== undefined && edadMaxMeses !== undefined) {
       where.edadAproximadaMeses = Between(edadMinMeses, edadMaxMeses);
