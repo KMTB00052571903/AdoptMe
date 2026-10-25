@@ -68,7 +68,9 @@ AdoptMe/
 │   │   │   └── notificaciones.module.ts
 │   │   │
 │   │   ├── common/
-│   │   │   └── enums/                # Valores permitidos (especie, estados, roles, etc.)
+│   │   │   ├── enums/                # Valores permitidos (especie, estados, roles, etc.)
+│   │   │   └── interceptors/
+│   │   │       └── logging.interceptor.ts  # Registra cada petición (método, ruta, código, tiempo)
 │   │   │
 │   │   ├── database/
 │   │   │   ├── data-source.ts        # Configuración de TypeORM para migraciones y seed
@@ -80,6 +82,8 @@ AdoptMe/
 │   │   └── main.ts                   # Punto de entrada de la API
 │   │
 │   ├── test/                         # Pruebas e2e
+│   ├── Dockerfile                    # Imagen de la API (compilar + ejecutar)
+│   ├── .dockerignore                 # Archivos que no entran a la imagen (node_modules, .env)
 │   ├── package.json
 │   └── tsconfig.json
 │
@@ -92,7 +96,7 @@ AdoptMe/
 │   ├── package.json
 │   └── tsconfig.json
 │
-├── docker-compose.yml                # Base de datos PostgreSQL en Docker
+├── docker-compose.yml                # PostgreSQL y la API en Docker
 ├── .env.example                      # Plantilla de variables de entorno
 ├── .gitignore
 └── README.md
@@ -118,9 +122,9 @@ Las tablas se crean con **migraciones** de TypeORM (`synchronize` está desactiv
 
 2. Crear el archivo `.env` en la raíz copiando `.env.example`, y cambiar `DB_PASSWORD` por una contraseña propia. **El `.env` no se sube al repositorio.**
 
-3. Levantar la base de datos (desde la raíz):
+3. Levantar **solo la base de datos** (desde la raíz):
 ```bash
-   docker compose up -d
+   docker compose up -d postgres
 ```
 
 4. Instalar dependencias, crear las tablas y cargar los datos de prueba:
@@ -131,13 +135,19 @@ Las tablas se crean con **migraciones** de TypeORM (`synchronize` está desactiv
    npm run seed
 ```
 
-5. Iniciar la API:
+5. Iniciar la API en modo desarrollo (se reinicia con cada cambio):
 ```bash
    npm run start:dev
 ```
    La API queda en `http://localhost:3000`.
 
-**Para empezar con una base de datos limpia** (borra todos los datos locales): desde la raíz `docker compose down -v` y `docker compose up -d`, y luego repetir `npm run migration:run` y `npm run seed`.
+**Opción: correr la API también en Docker.** Después del paso 4, desde la raíz:
+```bash
+docker compose up -d --build
+```
+Levanta PostgreSQL y la API juntas (contenedores `adoptme_postgres` y `adoptme_backend`). Los logs se ven con `docker compose logs -f backend`. No se puede tener al mismo tiempo la API en Docker y `npm run start:dev`, porque las dos usan el puerto 3000: para volver al modo desarrollo, `docker compose stop backend`.
+
+**Para empezar con una base de datos limpia** (borra todos los datos locales): desde la raíz `docker compose down -v` y `docker compose up -d postgres`, y luego repetir `npm run migration:run` y `npm run seed`.
 
 **Comandos útiles del backend:**
 
@@ -154,6 +164,17 @@ Las tablas se crean con **migraciones** de TypeORM (`synchronize` está desactiv
 | `npm run seed` | Carga los datos de prueba (se puede correr varias veces: no duplica) |
 
 Las pruebas usan `--experimental-vm-modules` (ya configurado en `package.json`) porque `@nestjs/typeorm` 12 es un módulo ESM. El aviso `ExperimentalWarning: VM Modules` es normal.
+
+**Comandos de Docker** (desde la raíz):
+
+| Comando | Qué hace |
+| --- | --- |
+| `docker compose up -d postgres` | Levanta solo la base de datos |
+| `docker compose up -d --build` | Construye la imagen de la API y levanta base + API |
+| `docker compose logs -f backend` | Muestra los logs de la API en el contenedor |
+| `docker compose stop backend` | Apaga la API en Docker (para volver a `npm run start:dev`) |
+| `docker compose down` | Apaga todo (los datos se conservan) |
+| `docker compose down -v` | Apaga todo y borra la base de datos local |
 
 ## 🔑 Usuarios de prueba
 
@@ -183,9 +204,9 @@ Son cuentas de demostración con datos ficticios. Las contraseñas se guardan co
 | `PATCH` | `/animales/:id/estado` | Cambia a `disponible` o `no_disponible` | 200, 400, 404, 409 |
 | `DELETE` | `/animales/:id` | Elimina un animal sin solicitudes | 200, 400, 404, 409 |
 
-**Filtros del catálogo** (todos opcionales): `especie` (`perro`, `gato`), `tamano` (`pequeno`, `mediano`, `grande`), `ciudad`, `edadMinMeses`, `edadMaxMeses`, `page` (por defecto 1) y `limit` (por defecto 10, máximo 50). El catálogo solo muestra animales `disponible` o `en_proceso`.
+**Filtros del catálogo** (todos opcionales): `especie` (`perro`, `gato`), `tamano` (`pequeno`, `mediano`, `grande`), `ciudad` (sin importar tildes ni mayúsculas), `edadMinMeses`, `edadMaxMeses`, `page` (por defecto 1) y `limit` (por defecto 10, máximo 50). El catálogo solo muestra animales `disponible` o `en_proceso`.
 
-Ejemplo: `GET /animales?especie=perro&ciudad=cali&edadMaxMeses=24&page=1&limit=10`
+Ejemplo: `GET /animales?especie=perro&ciudad=bogota&edadMaxMeses=24&page=1&limit=10`
 
 ## 🌿 Ramas
 
@@ -216,7 +237,7 @@ Ejemplo: `feat(backend): add animal, photo, and health entities`
 | `refactor` | Cambios en la estructura del código sin corregir errores ni agregar funciones |
 | `style` | Cambios de formato que no afectan la lógica del código |
 
-El área entre paréntesis indica qué parte se tocó: `backend`, `animals`, `auth`, `db`, etc.
+El área entre paréntesis indica qué parte se tocó: `backend`, `animals`, `auth`, `db`, `docker`, etc.
 
 ## 🚀 Tecnologías Usadas
 
@@ -237,7 +258,7 @@ El área entre paréntesis indica qué parte se tocó: `backend`, `animals`, `au
 * Tailwind CSS 4
 
 **Infraestructura**
-* Docker y Docker Compose
+* Docker y Docker Compose (PostgreSQL y la API)
 * Git y GitHub
 
 ## 👩‍💻 Equipo
