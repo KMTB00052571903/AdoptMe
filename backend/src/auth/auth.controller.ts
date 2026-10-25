@@ -1,6 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { requestValidationPipe } from '../common/request-validation.pipe';
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
 import { RegistroAdoptanteDto } from './dto/registro-adoptante.dto';
 import { RegistroFundacionDto } from './dto/registro-fundacion.dto';
 
@@ -19,5 +20,12 @@ export class AuthController {
   @Post('registro/fundacion')
   registrarFundacion(@Body(requestValidationPipe) dto: RegistroFundacionDto) {
     return this.authService.registrarFundacion(dto);
+  }
+
+  // Un POST responde 201 por defecto; el login no crea nada, así que responde 200.
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  login(@Body(requestValidationPipe) dto: LoginDto) {
+    return this.authService.login(dto);
   }
 }

@@ -44,6 +44,20 @@ describe('LoginDto', () => {
       BadRequestException,
     );
   });
+
+  it('does not apply the 8-14 registration rule (15 characters pass to the service)', async () => {
+    const body = { ...loginValido, password: '123456789012345' };
+
+    await expect(validarBody(body, LoginDto)).resolves.toBeInstanceOf(LoginDto);
+  });
+
+  it('rejects a password longer than 128 characters', async () => {
+    const body = { ...loginValido, password: 'a'.repeat(129) };
+
+    await expect(validarBody(body, LoginDto)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+  });
 });
 
 describe('RegistroAdoptanteDto', () => {

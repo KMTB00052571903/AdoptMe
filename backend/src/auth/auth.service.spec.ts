@@ -1,4 +1,5 @@
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
@@ -10,12 +11,13 @@ import { Usuario } from '../usuarios/entities/usuario.entity';
 import { AuthRulesService } from './auth-rules.service';
 import { AuthService } from './auth.service';
 
-describe('AuthService (registro)', () => {
+describe('AuthService', () => {
   let service: AuthService;
   let usuarioRepositoryMock: { findOne: jest.Mock };
   let managerMock: { create: jest.Mock; save: jest.Mock };
   let dataSourceMock: { transaction: jest.Mock };
   let authRulesServiceMock: { ensureEmailDisponible: jest.Mock };
+  let jwtServiceMock: { signAsync: jest.Mock };
 
   const adoptanteDto = {
     nombre: 'Kami',
@@ -40,6 +42,7 @@ describe('AuthService (registro)', () => {
       ),
     };
     authRulesServiceMock = { ensureEmailDisponible: jest.fn() };
+    jwtServiceMock = { signAsync: jest.fn() };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -50,6 +53,7 @@ describe('AuthService (registro)', () => {
         },
         { provide: DataSource, useValue: dataSourceMock },
         { provide: AuthRulesService, useValue: authRulesServiceMock },
+        { provide: JwtService, useValue: jwtServiceMock },
       ],
     }).compile();
     service = moduleRef.get(AuthService);
@@ -198,5 +202,80 @@ describe('AuthService (registro)', () => {
     await expect(
       service.registrarAdoptante(adoptanteDto),
     ).rejects.toBeInstanceOf(QueryFailedError);
+  });
+
+  describe('login', () => {
+    let hashClave123: string;
+
+    // Hash real de 'clave123', para que argon2.verify() funcione de verdad.
+    beforeAll(async () => {
+      hashClave123 = await argon2.hash('clave123');
+    });
+
+    it('returns an access token with sub, email and rol when credentials are valid', async () => {
+      // Arrange
+      usuarioRepositoryMock.findOne.mockResolvedValue({
+        id: 'u-1',
+        email: 'kami@mail.com',
+        rol: RolUsuario.ADOPTANTE,
+        passwordHash: hashClave123,
+      });
+      jwtServiceMock.signAsync.mockResolvedValue('token-firmado');
+
+      // Act
+      const result = await service.login({
+        email: 'KAMI@Mail.com',
+        password: 'clave123',
+      });
+
+      // Assert
+      expect(usuarioRepositoryMock.findOne).toHaveBeenCalledWith({
+        where: { email: 'kami@mail.com' },
+        select: { id: true, email: true, rol: true, passwordHash: true },
+      });
+      expect(jwtServiceMock.signAsync).toHaveBeenCalledWith({
+        sub: 'u-1',
+        email: 'kami@mail.com',
+        rol: RolUsuario.ADOPTANTE,
+      });
+      expect(result).toEqual({ accessToken: 'token-firmado' });
+    });
+
+    it('rejects an unknown email with 401 and does not sign a token', async () => {
+      // Arrange
+      usuarioRepositoryMock.findOne.mockResolvedValue(null);
+
+      // Act
+      const intento = service.login({
+        email: 'nadie@mail.com',
+        password: 'clave123',
+      });
+
+      // Assert
+      await expect(intento).rejects.toBeInstanceOf(UnauthorizedException);
+      await expect(intento).rejects.toThrow('Credenciales inválidas');
+      expect(jwtServiceMock.signAsync).not.toHaveBeenCalled();
+    });
+
+    it('rejects a wrong password with the same 401 message', async () => {
+      // Arrange
+      usuarioRepositoryMock.findOne.mockResolvedValue({
+        id: 'u-1',
+        email: 'kami@mail.com',
+        rol: RolUsuario.ADOPTANTE,
+        passwordHash: hashClave123,
+      });
+
+      // Act
+      const intento = service.login({
+        email: 'kami@mail.com',
+        password: 'otraClave1',
+      });
+
+      // Assert
+      await expect(intento).rejects.toBeInstanceOf(UnauthorizedException);
+      await expect(intento).rejects.toThrow('Credenciales inválidas');
+      expect(jwtServiceMock.signAsync).not.toHaveBeenCalled();
+    });
   });
 });

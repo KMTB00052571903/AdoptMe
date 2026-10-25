@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { DataSource, QueryFailedError, Repository } from 'typeorm';
@@ -7,8 +12,10 @@ import { Adoptante } from '../usuarios/entities/adoptante.entity';
 import { Fundacion } from '../usuarios/entities/fundacion.entity';
 import { Usuario } from '../usuarios/entities/usuario.entity';
 import { AuthRulesService } from './auth-rules.service';
+import { LoginDto } from './dto/login.dto';
 import { RegistroAdoptanteDto } from './dto/registro-adoptante.dto';
 import { RegistroFundacionDto } from './dto/registro-fundacion.dto';
+import { JwtPayload } from './jwt-payload.interface';
 import { UsuarioPublico } from './usuario-publico.interface';
 
 // Código de PostgreSQL para "violación de una restricción UNIQUE".
@@ -21,6 +28,7 @@ export class AuthService {
     private readonly usuarioRepository: Repository<Usuario>,
     private readonly dataSource: DataSource,
     private readonly authRulesService: AuthRulesService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async registrarAdoptante(dto: RegistroAdoptanteDto): Promise<UsuarioPublico> {
@@ -94,9 +102,37 @@ export class AuthService {
     }
   }
 
+  async login(dto: LoginDto): Promise<{ accessToken: string }> {
+    const usuario = await this.usuarioRepository.findOne({
+      where: { email: this.normalizarEmail(dto.email) },
+      // passwordHash tiene select: false, así que hay que pedirlo explícitamente.
+      select: { id: true, email: true, rol: true, passwordHash: true },
+    });
+    const passwordValida =
+      usuario !== null &&
+      (await argon2.verify(usuario.passwordHash, dto.password));
+
+    // Mismo 401 y mismo mensaje en los dos casos: no se revela qué falló.
+    if (!usuario || !passwordValida) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    const payload: JwtPayload = {
+      sub: usuario.id,
+      email: usuario.email,
+      rol: usuario.rol,
+    };
+    return { accessToken: await this.jwtService.signAsync(payload) };
+  }
+
+  // Misma regla en registro y login: 'Kami@Mail.com' = 'kami@mail.com'.
+  private normalizarEmail(email: string): string {
+    return email.trim().toLowerCase();
+  }
+
   // Normaliza el email, comprueba que esté libre (409) y calcula el hash.
   private async prepararRegistro(emailRecibido: string, password: string) {
-    const email = emailRecibido.trim().toLowerCase();
+    const email = this.normalizarEmail(emailRecibido);
     const existente = await this.usuarioRepository.findOne({
       where: { email },
     });
