@@ -205,6 +205,75 @@ describe('AnimalesService', () => {
     });
   });
 
+  describe('actualizarEstadoPorSolicitud', () => {
+    it('pasa el animal a en_proceso cuando llega la primera solicitud', async () => {
+      animalesRepository.findOne.mockResolvedValue({
+        id: 'animal-1',
+        estado: EstadoAnimal.DISPONIBLE,
+      });
+
+      await service.actualizarEstadoPorSolicitud(
+        'animal-1',
+        EstadoAnimal.EN_PROCESO,
+      );
+
+      expect(animalesRepository.update).toHaveBeenCalledWith('animal-1', {
+        estado: EstadoAnimal.EN_PROCESO,
+      });
+    });
+
+    it('no actualiza si el estado ya es el mismo', async () => {
+      animalesRepository.findOne.mockResolvedValue({
+        id: 'animal-1',
+        estado: EstadoAnimal.EN_PROCESO,
+      });
+
+      await service.actualizarEstadoPorSolicitud(
+        'animal-1',
+        EstadoAnimal.EN_PROCESO,
+      );
+
+      expect(animalesRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('lanza 409 si el animal no está recibiendo solicitudes', async () => {
+      animalesRepository.findOne.mockResolvedValue({
+        id: 'animal-1',
+        estado: EstadoAnimal.NO_DISPONIBLE,
+      });
+
+      await expect(
+        service.actualizarEstadoPorSolicitud('animal-1', EstadoAnimal.EN_PROCESO),
+      ).rejects.toThrow(ConflictException);
+      expect(animalesRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('usa el repositorio del manager cuando recibe una transacción', async () => {
+      const repoTransaccion = {
+        findOne: jest.fn().mockResolvedValue({
+          id: 'animal-1',
+          estado: EstadoAnimal.EN_PROCESO,
+        }),
+        update: jest.fn(),
+      };
+      const managerTransaccion = {
+        getRepository: jest.fn().mockReturnValue(repoTransaccion),
+      };
+
+      await service.actualizarEstadoPorSolicitud(
+        'animal-1',
+        EstadoAnimal.ADOPTADO,
+        managerTransaccion as never,
+      );
+
+      expect(managerTransaccion.getRepository).toHaveBeenCalledWith(Animal);
+      expect(repoTransaccion.update).toHaveBeenCalledWith('animal-1', {
+        estado: EstadoAnimal.ADOPTADO,
+      });
+      expect(animalesRepository.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe('remove', () => {
     beforeEach(() => {
       animalesRepository.findOne.mockResolvedValue({ id: 'animal-1', fotos: [] });

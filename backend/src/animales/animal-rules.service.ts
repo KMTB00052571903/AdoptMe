@@ -1,6 +1,22 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { EstadoAnimal } from '../common/enums/estado-animal.enum';
 
+// Cambios de estado que puede hacer el flujo de solicitudes (F2).
+const TRANSICIONES_POR_SOLICITUD: Record<EstadoAnimal, EstadoAnimal[]> = {
+  // Llega la primera solicitud.
+  [EstadoAnimal.DISPONIBLE]: [EstadoAnimal.EN_PROCESO],
+  // Llega otra solicitud (sigue en proceso), se aprueba una (adoptado)
+  // o se rechazan todas y no queda ninguna pendiente (disponible).
+  [EstadoAnimal.EN_PROCESO]: [
+    EstadoAnimal.EN_PROCESO,
+    EstadoAnimal.ADOPTADO,
+    EstadoAnimal.DISPONIBLE,
+  ],
+  // Estos no reciben solicitudes.
+  [EstadoAnimal.ADOPTADO]: [],
+  [EstadoAnimal.NO_DISPONIBLE]: [],
+};
+
 // Reglas de negocio de F1. No usa base de datos ni HTTP: solo decide si una
 // acción está permitida. Si no lo está, lanza 409 (Conflict).
 @Injectable()
@@ -27,6 +43,27 @@ export class AnimalRulesService {
 
     if (actual === nuevo) {
       throw new ConflictException(`El animal ya está en estado '${actual}'`);
+    }
+  }
+
+  // Cambio de estado desde Solicitudes (F2). No es un endpoint: lo llama
+  // SolicitudesService al crear, aprobar o rechazar una solicitud.
+  assertCambioEstadoPorSolicitud(
+    actual: EstadoAnimal,
+    nuevo: EstadoAnimal,
+  ): void {
+    if (!TRANSICIONES_POR_SOLICITUD[actual].includes(nuevo)) {
+      if (
+        actual === EstadoAnimal.ADOPTADO ||
+        actual === EstadoAnimal.NO_DISPONIBLE
+      ) {
+        throw new ConflictException(
+          `El animal está '${actual}' y no está recibiendo solicitudes`,
+        );
+      }
+      throw new ConflictException(
+        `No se puede pasar de '${actual}' a '${nuevo}' por una solicitud`,
+      );
     }
   }
 

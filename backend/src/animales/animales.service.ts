@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   Between,
   DataSource,
+  EntityManager,
   FindOptionsWhere,
   In,
   LessThanOrEqual,
@@ -165,6 +166,31 @@ export class AnimalesService {
 
     await this.animalesRepository.update(id, { estado: dto.estado });
     return this.findOne(id);
+  }
+
+  // Cambio de estado desde Solicitudes (F2). No es un endpoint.
+  // Lo llama SolicitudesService: en_proceso al crear, adoptado al aprobar,
+  // disponible si se rechazan todas. Si se pasa un manager, el cambio queda
+  // dentro de la misma transacción de quien lo llama (todo o nada).
+  async actualizarEstadoPorSolicitud(
+    animalId: string,
+    nuevo: EstadoAnimal,
+    manager?: EntityManager,
+  ): Promise<void> {
+    const repositorio = manager
+      ? manager.getRepository(Animal)
+      : this.animalesRepository;
+
+    const animal = await repositorio.findOne({ where: { id: animalId } });
+    if (!animal) {
+      throw new NotFoundException(`Animal ${animalId} no encontrado`);
+    }
+
+    this.animalRules.assertCambioEstadoPorSolicitud(animal.estado, nuevo);
+
+    if (animal.estado !== nuevo) {
+      await repositorio.update(animalId, { estado: nuevo });
+    }
   }
 
   // Eliminar. Las fotos y la ficha se borran solas (ON DELETE CASCADE).

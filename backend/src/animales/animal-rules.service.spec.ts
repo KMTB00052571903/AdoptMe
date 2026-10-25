@@ -68,6 +68,38 @@ describe('AnimalRulesService', () => {
     });
   });
 
+  describe('assertCambioEstadoPorSolicitud', () => {
+    // Las 4 transiciones que permite el flujo de solicitudes (F2).
+    it.each([
+      [EstadoAnimal.DISPONIBLE, EstadoAnimal.EN_PROCESO],
+      [EstadoAnimal.EN_PROCESO, EstadoAnimal.EN_PROCESO],
+      [EstadoAnimal.EN_PROCESO, EstadoAnimal.ADOPTADO],
+      [EstadoAnimal.EN_PROCESO, EstadoAnimal.DISPONIBLE],
+    ])('permite pasar de %s a %s', (actual, nuevo) => {
+      expect(() =>
+        rules.assertCambioEstadoPorSolicitud(actual, nuevo),
+      ).not.toThrow();
+    });
+
+    it.each([EstadoAnimal.ADOPTADO, EstadoAnimal.NO_DISPONIBLE])(
+      'rechaza solicitudes para un animal %s',
+      (actual) => {
+        expect(() =>
+          rules.assertCambioEstadoPorSolicitud(actual, EstadoAnimal.EN_PROCESO),
+        ).toThrow('no está recibiendo solicitudes');
+      },
+    );
+
+    it('rechaza aprobar un animal que no está en proceso', () => {
+      expect(() =>
+        rules.assertCambioEstadoPorSolicitud(
+          EstadoAnimal.DISPONIBLE,
+          EstadoAnimal.ADOPTADO,
+        ),
+      ).toThrow(ConflictException);
+    });
+  });
+
   describe('assertPuedeEliminar', () => {
     it('permite eliminar un animal sin solicitudes', () => {
       expect(() => rules.assertPuedeEliminar(0)).not.toThrow();
