@@ -7,6 +7,7 @@ import { AnimalesService } from './animales.service';
 import { Animal } from './entities/animal.entity';
 import { FichaSalud } from './entities/ficha-salud.entity';
 import { FotoAnimal } from './entities/foto-animal.entity';
+import { AnimalesController } from './animales.controller';
 
 // forFeature registra los repositorios que este módulo puede inyectar.
 // Fundacion y SolicitudAdopcion se usan para validar y contar.
@@ -20,6 +21,7 @@ import { FotoAnimal } from './entities/foto-animal.entity';
       SolicitudAdopcion,
     ]),
   ],
+  controllers: [AnimalesController],
   providers: [AnimalesService, AnimalRulesService],
   exports: [AnimalesService],
 })
