@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   Check,
   Column,
@@ -29,11 +32,11 @@ import { Checkpoint } from '../../seguimiento/entities/checkpoint.entity';
 )
 export class SolicitudAdopcion {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   // FK explícita: es la misma columna que usa la relación de abajo (animal_id).
   @Column({ name: 'animal_id', type: 'uuid' })
-  animalId: string;
+  animalId!: string;
 
   // N:1 obligatoria. No se puede borrar un animal con solicitudes (protege el historial).
   @ManyToOne(() => Animal, (animal) => animal.solicitudes, {
@@ -41,11 +44,11 @@ export class SolicitudAdopcion {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'animal_id' })
-  animal: Animal;
+  animal!: Animal;
 
   // FK explícita: es la misma columna que usa la relación de abajo (adoptante_id).
   @Column({ name: 'adoptante_id', type: 'uuid' })
-  adoptanteId: string;
+  adoptanteId!: string;
 
   // N:1 obligatoria. No se puede borrar un adoptante con solicitudes.
   @ManyToOne(() => Adoptante, (adoptante) => adoptante.solicitudes, {
@@ -53,33 +56,33 @@ export class SolicitudAdopcion {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'adoptante_id' })
-  adoptante: Adoptante;
+  adoptante!: Adoptante;
 
   @Column({ type: 'text' })
-  motivacion: string;
+  motivacion!: string;
 
   @Column({ name: 'condiciones_hogar', type: 'text' })
-  condicionesHogar: string;
+  condicionesHogar!: string;
 
   @Column({
     type: 'enum',
     enum: EstadoSolicitud,
     default: EstadoSolicitud.PENDIENTE,
   })
-  estado: EstadoSolicitud;
+  estado!: EstadoSolicitud;
 
   // Solo se llena cuando la fundación rechaza la solicitud.
   @Column({ name: 'motivo_rechazo', type: 'text', nullable: true })
-  motivoRechazo: string | null;
+  motivoRechazo!: string | null;
 
   @CreateDateColumn({ name: 'fecha_solicitud', type: 'timestamp' })
-  fechaSolicitud: Date;
+  fechaSolicitud!: Date;
 
   // Nula mientras está pendiente; se llena al aprobar, rechazar o cerrar.
   @Column({ name: 'fecha_resolucion', type: 'timestamp', nullable: true })
-  fechaResolucion: Date | null;
+  fechaResolucion!: Date | null;
 
   // Lado inverso 1:N (no crea columnas). Exactamente dos (dia_30 y dia_90) al aprobarse.
   @OneToMany(() => Checkpoint, (checkpoint) => checkpoint.solicitud)
-  checkpoints: Checkpoint[];
+  checkpoints!: Checkpoint[];
 }
