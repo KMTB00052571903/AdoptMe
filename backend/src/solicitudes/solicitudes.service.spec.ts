@@ -6,6 +6,7 @@ import { SolicitudAdopcion } from './entities/solicitud-adopcion.entity';
 import { AprobadoService } from './rules/solicitudes-aprobado.service';
 import { RechazadoService } from './rules/solicitudes-rechazado.service';
 import { EstadoSolicitud } from '../common/enums/estado-solicitud.enum';
+import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 
 describe('SolicitudesServiceTest', () => {
   let service: SolicitudesService;
