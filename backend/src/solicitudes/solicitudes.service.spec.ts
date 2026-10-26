@@ -6,7 +6,9 @@ import { SolicitudAdopcion } from './entities/solicitud-adopcion.entity';
 import { AprobadoService } from './rules/solicitudes-aprobado.service';
 import { RechazadoService } from './rules/solicitudes-rechazado.service';
 import { EstadoSolicitud } from '../common/enums/estado-solicitud.enum';
-import { CreateSolicitudDto } from './dto/create-solicitud.dto';
+import { Adoptante } from '../usuarios/entities/adoptante.entity';
+import { AnimalesService } from '../animales/animales.service';
+import { DataSource } from 'typeorm';
 
 describe('SolicitudesServiceTest', () => {
   let service: SolicitudesService;
@@ -18,7 +20,7 @@ describe('SolicitudesServiceTest', () => {
   };
 
   const aprobadoServiceMock = {
-    ensureNotTake: jest.fn(),
+    ensureNotTaken: jest.fn(),
   };
 
   const rechazadoServiceMock = {
@@ -43,6 +45,15 @@ describe('SolicitudesServiceTest', () => {
           provide: RechazadoService,
           useValue: rechazadoServiceMock,
         },
+        {
+          provide: getRepositoryToken(Adoptante),
+          useValue: { findOneBy: jest.fn() },
+        },
+        {
+          provide: AnimalesService,
+          useValue: { actualizarEstadoPorSolicitud: jest.fn() },
+        },
+        { provide: DataSource, useValue: { transaction: jest.fn() } },
       ],
     }).compile();
 
@@ -64,6 +75,8 @@ describe('SolicitudesServiceTest', () => {
     const result = await service.findOne('99');
 
     expect(result).toEqual(requestMock);
-    expect(repositoryMock.findOne).toHaveBeenCalledWith({ id: '99' });
+    expect(repositoryMock.findOne).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: '99' } }),
+    );
   });
 });
