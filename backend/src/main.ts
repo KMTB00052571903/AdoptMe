@@ -5,6 +5,8 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.setGlobalPrefix('api');
+
   // Interceptor global: se aplica a todas las rutas de todos los módulos.
   app.useGlobalInterceptors(new LoggingInterceptor());
 
