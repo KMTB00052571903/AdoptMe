@@ -25,6 +25,8 @@ import { AuthModule } from './auth/auth.module';
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: false, // las tablas solo cambian con migraciones (src/database)
+        // Neon exige conexión segura (SSL). En local (Docker) no hace falta.
+        ssl: config.get<string>('NODE_ENV') === 'production',
       }),
     }),
     UsuariosModule,
