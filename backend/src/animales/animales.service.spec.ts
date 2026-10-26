@@ -33,7 +33,6 @@ describe('AnimalesService', () => {
   let dataSource: Record<string, jest.Mock>;
 
   const dtoCrear: CreateAnimalDto = {
-    fundacionId: 'fundacion-1',
     nombre: 'Luna',
     especie: EspecieAnimal.PERRO,
     sexo: SexoAnimal.HEMBRA,
@@ -90,7 +89,9 @@ describe('AnimalesService', () => {
     it('lanza 404 si la fundación no existe y no abre la transacción', async () => {
       fundacionesRepository.existsBy.mockResolvedValue(false);
 
-      await expect(service.create(dtoCrear)).rejects.toThrow(NotFoundException);
+      await expect(service.create(dtoCrear, 'fundacion-1')).rejects.toThrow(
+        NotFoundException,
+      );
       expect(dataSource.transaction).not.toHaveBeenCalled();
     });
 
@@ -98,9 +99,14 @@ describe('AnimalesService', () => {
       fundacionesRepository.existsBy.mockResolvedValue(true);
       animalesRepository.findOne.mockResolvedValue({ id: 'animal-1', fotos: [] });
 
-      await service.create(dtoCrear);
+      await service.create(dtoCrear, 'fundacion-1');
 
       expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+      // La fundación del animal es la del token, no una que venga en el body.
+      expect(manager.create).toHaveBeenCalledWith(
+        Animal,
+        expect.objectContaining({ nombre: 'Luna', fundacionId: 'fundacion-1' }),
+      );
       expect(manager.create).toHaveBeenCalledWith(FichaSalud, {
         vacunasAlDia: true,
         esterilizado: true,
@@ -167,9 +173,13 @@ describe('AnimalesService', () => {
 
   describe('update', () => {
     it('no toca la base si el PATCH llega vacío', async () => {
-      animalesRepository.findOne.mockResolvedValue({ id: 'animal-1', fotos: [] });
+      animalesRepository.findOne.mockResolvedValue({
+        id: 'animal-1',
+        fundacionId: 'fundacion-1',
+        fotos: [],
+      });
 
-      await service.update('animal-1', {});
+      await service.update('animal-1', {}, 'fundacion-1');
 
       expect(animalesRepository.update).not.toHaveBeenCalled();
     });
@@ -179,12 +189,17 @@ describe('AnimalesService', () => {
     it('lanza 409 al intentar poner adoptado a mano y no actualiza', async () => {
       animalesRepository.findOne.mockResolvedValue({
         id: 'animal-1',
+        fundacionId: 'fundacion-1',
         estado: EstadoAnimal.DISPONIBLE,
         fotos: [],
       });
 
       await expect(
-        service.cambiarEstado('animal-1', { estado: EstadoAnimal.ADOPTADO }),
+        service.cambiarEstado(
+          'animal-1',
+          { estado: EstadoAnimal.ADOPTADO },
+          'fundacion-1',
+        ),
       ).rejects.toThrow(ConflictException);
       expect(animalesRepository.update).not.toHaveBeenCalled();
     });
@@ -192,13 +207,16 @@ describe('AnimalesService', () => {
     it('actualiza el estado cuando la transición está permitida', async () => {
       animalesRepository.findOne.mockResolvedValue({
         id: 'animal-1',
+        fundacionId: 'fundacion-1',
         estado: EstadoAnimal.DISPONIBLE,
         fotos: [],
       });
 
-      await service.cambiarEstado('animal-1', {
-        estado: EstadoAnimal.NO_DISPONIBLE,
-      });
+      await service.cambiarEstado(
+        'animal-1',
+        { estado: EstadoAnimal.NO_DISPONIBLE },
+        'fundacion-1',
+      );
 
       expect(animalesRepository.update).toHaveBeenCalledWith('animal-1', {
         estado: EstadoAnimal.NO_DISPONIBLE,
@@ -323,13 +341,17 @@ describe('AnimalesService', () => {
 
   describe('remove', () => {
     beforeEach(() => {
-      animalesRepository.findOne.mockResolvedValue({ id: 'animal-1', fotos: [] });
+      animalesRepository.findOne.mockResolvedValue({
+        id: 'animal-1',
+        fundacionId: 'fundacion-1',
+        fotos: [],
+      });
     });
 
     it('lanza 409 si el animal tiene solicitudes y no borra', async () => {
       solicitudesRepository.count.mockResolvedValue(1);
 
-      await expect(service.remove('animal-1')).rejects.toThrow(
+      await expect(service.remove('animal-1', 'fundacion-1')).rejects.toThrow(
         ConflictException,
       );
       expect(animalesRepository.delete).not.toHaveBeenCalled();
@@ -339,7 +361,9 @@ describe('AnimalesService', () => {
       solicitudesRepository.count.mockResolvedValue(0);
       animalesRepository.delete.mockResolvedValue({ affected: 1 });
 
-      await expect(service.remove('animal-1')).resolves.toEqual({ deleted: 1 });
+      await expect(
+        service.remove('animal-1', 'fundacion-1'),
+      ).resolves.toEqual({ deleted: 1 });
     });
   });
 });

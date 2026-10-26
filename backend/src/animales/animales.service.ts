@@ -41,12 +41,13 @@ export class AnimalesService {
   ) {}
 
   // HU01: publicar un animal con su ficha de salud y sus fotos.
-  async create(dto: CreateAnimalDto): Promise<Animal> {
+  // fundacionId viene del token (el controlador lo saca de req.user).
+  async create(dto: CreateAnimalDto, fundacionId: string): Promise<Animal> {
     const existeFundacion = await this.fundacionesRepository.existsBy({
-      id: dto.fundacionId,
+      id: fundacionId,
     });
     if (!existeFundacion) {
-      throw new NotFoundException(`Fundación ${dto.fundacionId} no encontrada`);
+      throw new NotFoundException(`Fundación ${fundacionId} no encontrada`);
     }
 
     const { fotos, fichaSalud, ...datosAnimal } = dto;
@@ -54,7 +55,9 @@ export class AnimalesService {
     // Transacción: se guardan el animal, su ficha y sus fotos, o no se guarda
     // nada. Así no queda un animal a medias si falla una de las partes.
     const animalId = await this.dataSource.transaction(async (manager) => {
-      const animal = await manager.save(manager.create(Animal, datosAnimal));
+      const animal = await manager.save(
+        manager.create(Animal, { ...datosAnimal, fundacionId }),
+      );
 
       await manager.save(
         manager.create(FichaSalud, { ...fichaSalud, animalId: animal.id }),
@@ -150,10 +153,13 @@ export class AnimalesService {
   async update(
     id: string,
     dto: UpdateAnimalDto,
-    fundacionIdUsuario?: string,
+    fundacionIdUsuario: string,
   ): Promise<Animal> {
     const animal = await this.findOne(id);
-    this.verificarQueEsDeLaFundacion(animal, fundacionIdUsuario);
+    this.animalRules.assertEsDeLaFundacion(
+      animal.fundacionId,
+      fundacionIdUsuario,
+    );
 
     const cambios = Object.fromEntries(
       Object.entries(dto).filter(([, valor]) => valor !== undefined),
@@ -170,10 +176,13 @@ export class AnimalesService {
   async cambiarEstado(
     id: string,
     dto: UpdateEstadoAnimalDto,
-    fundacionIdUsuario?: string,
+    fundacionIdUsuario: string,
   ): Promise<Animal> {
     const animal = await this.findOne(id);
-    this.verificarQueEsDeLaFundacion(animal, fundacionIdUsuario);
+    this.animalRules.assertEsDeLaFundacion(
+      animal.fundacionId,
+      fundacionIdUsuario,
+    );
     this.animalRules.assertCambioEstadoManual(animal.estado, dto.estado);
 
     await this.animalesRepository.update(id, { estado: dto.estado });
@@ -209,10 +218,13 @@ export class AnimalesService {
   // 403 si es de otra fundación, 409 si tiene solicitudes.
   async remove(
     id: string,
-    fundacionIdUsuario?: string,
+    fundacionIdUsuario: string,
   ): Promise<{ deleted: number }> {
     const animal = await this.findOne(id);
-    this.verificarQueEsDeLaFundacion(animal, fundacionIdUsuario);
+    this.animalRules.assertEsDeLaFundacion(
+      animal.fundacionId,
+      fundacionIdUsuario,
+    );
 
     const cantidadSolicitudes = await this.solicitudesRepository.count({
       where: { animalId: id },
@@ -221,20 +233,6 @@ export class AnimalesService {
 
     const result = await this.animalesRepository.delete(id);
     return { deleted: result.affected ?? 0 };
-  }
-
-  // TEMPORAL: mientras no exista Auth en develop, el controlador no envía
-  // fundacionIdUsuario y no se revisa. Con el guard, siempre llega del token.
-  private verificarQueEsDeLaFundacion(
-    animal: Animal,
-    fundacionIdUsuario?: string,
-  ): void {
-    if (fundacionIdUsuario !== undefined) {
-      this.animalRules.assertEsDeLaFundacion(
-        animal.fundacionId,
-        fundacionIdUsuario,
-      );
-    }
   }
 
   // La foto con orden 1 (la principal) queda siempre de primera.
