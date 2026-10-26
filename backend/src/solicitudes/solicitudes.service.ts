@@ -6,12 +6,16 @@ import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 import { EstadoSolicitud } from 'src/common/enums/estado-solicitud.enum';
 import { AprobadoService } from './rules/solicitudes-aprobado.service';
 import { RechazadoService } from './rules/solicitudes-rechazado.service';
+import { Adoptante } from 'src/usuarios/entities/adoptante.entity';
 
 @Injectable()
 export class SolicitudesService {
   constructor(
     @InjectRepository(SolicitudAdopcion)
     private readonly solicitudRepository: Repository<SolicitudAdopcion>,
+
+    @InjectRepository(Adoptante)
+    private readonly adoptanteRepository: Repository<Adoptante>,
 
     private readonly aprobadoService: AprobadoService,
     private readonly rechazadoService: RechazadoService,
@@ -20,7 +24,7 @@ export class SolicitudesService {
   async create(
     createSolicitudDto: CreateSolicitudDto,
   ): Promise<SolicitudAdopcion> {
-    const adoptante = await this.solicitudRepository.findOneBy({
+    const adoptante = await this.adoptanteRepository.findOneBy({
       id: createSolicitudDto.adoptanteId,
     });
 
