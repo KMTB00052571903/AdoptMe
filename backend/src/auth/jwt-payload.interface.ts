@@ -6,4 +6,8 @@ export interface JwtPayload {
   sub: string; // id del usuario
   email: string;
   rol: RolUsuario;
+  // id del perfil según el rol: una fundación solo trae fundacionId
+  // y un adoptante solo adoptanteId. Salen de la base de datos al hacer login.
+  fundacionId?: string;
+  adoptanteId?: string;
 }

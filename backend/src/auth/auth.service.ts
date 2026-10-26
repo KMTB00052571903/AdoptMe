@@ -105,8 +105,17 @@ export class AuthService {
   async login(dto: LoginDto): Promise<{ accessToken: string }> {
     const usuario = await this.usuarioRepository.findOne({
       where: { email: this.normalizarEmail(dto.email) },
+      // El perfil (fundación o adoptante) se carga para poner su id en el token.
+      relations: { fundacion: true, adoptante: true },
       // passwordHash tiene select: false, así que hay que pedirlo explícitamente.
-      select: { id: true, email: true, rol: true, passwordHash: true },
+      select: {
+        id: true,
+        email: true,
+        rol: true,
+        passwordHash: true,
+        fundacion: { id: true },
+        adoptante: { id: true },
+      },
     });
     const passwordValida =
       usuario !== null &&
@@ -121,6 +130,8 @@ export class AuthService {
       sub: usuario.id,
       email: usuario.email,
       rol: usuario.rol,
+      fundacionId: usuario.fundacion?.id,
+      adoptanteId: usuario.adoptante?.id,
     };
     return { accessToken: await this.jwtService.signAsync(payload) };
   }

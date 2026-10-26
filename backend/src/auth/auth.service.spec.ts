@@ -212,13 +212,15 @@ describe('AuthService', () => {
       hashClave123 = await argon2.hash('clave123');
     });
 
-    it('returns an access token with sub, email and rol when credentials are valid', async () => {
+    it('signs sub, email, rol and adoptanteId for a valid adopter', async () => {
       // Arrange
       usuarioRepositoryMock.findOne.mockResolvedValue({
         id: 'u-1',
         email: 'kami@mail.com',
         rol: RolUsuario.ADOPTANTE,
         passwordHash: hashClave123,
+        fundacion: null,
+        adoptante: { id: 'a-1' },
       });
       jwtServiceMock.signAsync.mockResolvedValue('token-firmado');
 
@@ -231,14 +233,47 @@ describe('AuthService', () => {
       // Assert
       expect(usuarioRepositoryMock.findOne).toHaveBeenCalledWith({
         where: { email: 'kami@mail.com' },
-        select: { id: true, email: true, rol: true, passwordHash: true },
+        relations: { fundacion: true, adoptante: true },
+        select: {
+          id: true,
+          email: true,
+          rol: true,
+          passwordHash: true,
+          fundacion: { id: true },
+          adoptante: { id: true },
+        },
       });
       expect(jwtServiceMock.signAsync).toHaveBeenCalledWith({
         sub: 'u-1',
         email: 'kami@mail.com',
         rol: RolUsuario.ADOPTANTE,
+        adoptanteId: 'a-1',
       });
       expect(result).toEqual({ accessToken: 'token-firmado' });
+    });
+
+    it('signs fundacionId (from the database, not the client) for a foundation', async () => {
+      // Arrange
+      usuarioRepositoryMock.findOne.mockResolvedValue({
+        id: 'u-2',
+        email: 'ana@huellitas.org',
+        rol: RolUsuario.FUNDACION,
+        passwordHash: hashClave123,
+        fundacion: { id: 'f-1' },
+        adoptante: null,
+      });
+      jwtServiceMock.signAsync.mockResolvedValue('token-firmado');
+
+      // Act
+      await service.login({ email: 'ana@huellitas.org', password: 'clave123' });
+
+      // Assert
+      expect(jwtServiceMock.signAsync).toHaveBeenCalledWith({
+        sub: 'u-2',
+        email: 'ana@huellitas.org',
+        rol: RolUsuario.FUNDACION,
+        fundacionId: 'f-1',
+      });
     });
 
     it('rejects an unknown email with 401 and does not sign a token', async () => {
