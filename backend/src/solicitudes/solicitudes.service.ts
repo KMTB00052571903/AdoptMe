@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { SolicitudAdopcion } from './entities/solicitud-adopcion.entity';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 import { EstadoSolicitud } from 'src/common/enums/estado-solicitud.enum';
@@ -12,7 +12,6 @@ import { AprobadoService } from './rules/solicitudes-aprobado.service';
 import { RechazadoService } from './rules/solicitudes-rechazado.service';
 import { Adoptante } from 'src/usuarios/entities/adoptante.entity';
 import { AnimalesService } from 'src/animales/animales.service';
-import { DataSource } from 'typeorm/browser/data-source/DataSource.js';
 import { EstadoAnimal } from 'src/common/enums/estado-animal.enum';
 
 @Injectable()
