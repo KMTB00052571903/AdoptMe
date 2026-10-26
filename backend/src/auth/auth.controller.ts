@@ -1,9 +1,21 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { requestValidationPipe } from '../common/request-validation.pipe';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegistroAdoptanteDto } from './dto/registro-adoptante.dto';
 import { RegistroFundacionDto } from './dto/registro-fundacion.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import type { RequestConUsuario } from './request-con-usuario.interface';
+import type { UsuarioAutenticado } from './usuario-autenticado.interface';
 
 // Rutas de autenticación. Valida el body con el pipe compartido y delega
 // en AuthService; no contiene reglas de negocio ni consultas.
@@ -27,5 +39,13 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   login(@Body(requestValidationPipe) dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  // Ruta protegida: devuelve la identidad que JwtStrategy dejó en request.user.
+  // Sirve para comprobar un token y como ejemplo para el resto del equipo.
+  @Get('perfil')
+  @UseGuards(JwtAuthGuard)
+  perfil(@Req() req: RequestConUsuario): UsuarioAutenticado {
+    return req.user;
   }
 }
