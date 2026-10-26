@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,6 +11,9 @@ import { EstadoSolicitud } from 'src/common/enums/estado-solicitud.enum';
 import { AprobadoService } from './rules/solicitudes-aprobado.service';
 import { RechazadoService } from './rules/solicitudes-rechazado.service';
 import { Adoptante } from 'src/usuarios/entities/adoptante.entity';
+import { AnimalesService } from 'src/animales/animales.service';
+import { DataSource } from 'typeorm/browser/data-source/DataSource.js';
+import { EstadoAnimal } from 'src/common/enums/estado-animal.enum';
 
 @Injectable()
 export class SolicitudesService {
@@ -17,6 +24,8 @@ export class SolicitudesService {
     @InjectRepository(Adoptante)
     private readonly adoptanteRepository: Repository<Adoptante>,
 
+    private readonly animalesService: AnimalesService,
+    private readonly dataSource: DataSource,
     private readonly aprobadoService: AprobadoService,
     private readonly rechazadoService: RechazadoService,
   ) {}
@@ -28,29 +37,28 @@ export class SolicitudesService {
       id: createSolicitudDto.adoptanteId,
     });
 
-    const animal = await this.solicitudRepository.findOneBy({
-      id: createSolicitudDto.animalId,
-    });
-
     if (!adoptante) {
       throw new NotFoundException(
         `Adoptante con ID ${createSolicitudDto.adoptanteId} no existe`,
       );
-    } else if (!animal) {
-      throw new NotFoundException(
-        `Animal con ID ${createSolicitudDto.animalId} no existe`,
-      );
     }
 
     const request = this.solicitudRepository.create({
-      animal,
+      animalId: createSolicitudDto.animalId,
       adoptante,
       motivacion: createSolicitudDto.motivacion,
       condicionesHogar: createSolicitudDto.condicionesHogar,
       estado: EstadoSolicitud.PENDIENTE,
     });
 
-    return this.solicitudRepository.save(request);
+    return this.dataSource.transaction(async (manager) => {
+      await this.animalesService.actualizarEstadoPorSolicitud(
+        createSolicitudDto.animalId,
+        EstadoAnimal.EN_PROCESO,
+        manager,
+      );
+      return manager.save(manager.create(SolicitudAdopcion, { ...request }));
+    });
   }
 
   async findOne(id: string): Promise<SolicitudAdopcion> {
