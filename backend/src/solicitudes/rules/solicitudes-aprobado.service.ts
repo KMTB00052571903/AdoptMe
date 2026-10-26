@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { SolicitudAdopcion } from '../entities/solicitud-adopcion.entity';
-import { EstadoSolicitud } from 'src/common/enums/estado-solicitud.enum';
+import { EstadoSolicitud } from '../../common/enums/estado-solicitud.enum';
 
 @Injectable()
 export class AprobadoService {

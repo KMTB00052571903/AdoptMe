@@ -7,12 +7,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { SolicitudAdopcion } from './entities/solicitud-adopcion.entity';
 import { CreateSolicitudDto } from './dto/create-solicitud.dto';
-import { EstadoSolicitud } from 'src/common/enums/estado-solicitud.enum';
+import { EstadoSolicitud } from '../common/enums/estado-solicitud.enum';
 import { AprobadoService } from './rules/solicitudes-aprobado.service';
 import { RechazadoService } from './rules/solicitudes-rechazado.service';
-import { Adoptante } from 'src/usuarios/entities/adoptante.entity';
-import { AnimalesService } from 'src/animales/animales.service';
-import { EstadoAnimal } from 'src/common/enums/estado-animal.enum';
+import { Adoptante } from '../usuarios/entities/adoptante.entity';
+import { AnimalesService } from '../animales/animales.service';
+import { EstadoAnimal } from '../common/enums/estado-animal.enum';
 
 @Injectable()
 export class SolicitudesService {
