@@ -10,7 +10,6 @@ import {
   IsOptional,
   IsString,
   IsUrl,
-  IsUUID,
   Max,
   MaxLength,
   Min,
@@ -22,11 +21,8 @@ import { TamanoAnimal } from '../../common/enums/tamano-animal.enum';
 import { CreateFichaSaludDto } from './create-ficha-salud.dto';
 
 export class CreateAnimalDto {
-  // TEMPORAL: cuando exista Auth, la fundación sale del token (request.user)
-  // y este campo se elimina del DTO.
-  @IsUUID()
-  fundacionId!: string;
-
+  // No hay fundacionId: la fundación sale del token (req.user.fundacionId).
+  // Si alguien lo manda en el body, forbidNonWhitelisted responde 400.
   @IsString()
   @IsNotEmpty()
   @MaxLength(60)

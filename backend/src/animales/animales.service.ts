@@ -41,12 +41,13 @@ export class AnimalesService {
   ) {}
 
   // HU01: publicar un animal con su ficha de salud y sus fotos.
-  async create(dto: CreateAnimalDto): Promise<Animal> {
+  // fundacionId viene del token (el controlador lo saca de req.user).
+  async create(dto: CreateAnimalDto, fundacionId: string): Promise<Animal> {
     const existeFundacion = await this.fundacionesRepository.existsBy({
-      id: dto.fundacionId,
+      id: fundacionId,
     });
     if (!existeFundacion) {
-      throw new NotFoundException(`Fundación ${dto.fundacionId} no encontrada`);
+      throw new NotFoundException(`Fundación ${fundacionId} no encontrada`);
     }
 
     const { fotos, fichaSalud, ...datosAnimal } = dto;
@@ -54,7 +55,9 @@ export class AnimalesService {
     // Transacción: se guardan el animal, su ficha y sus fotos, o no se guarda
     // nada. Así no queda un animal a medias si falla una de las partes.
     const animalId = await this.dataSource.transaction(async (manager) => {
-      const animal = await manager.save(manager.create(Animal, datosAnimal));
+      const animal = await manager.save(
+        manager.create(Animal, { ...datosAnimal, fundacionId }),
+      );
 
       await manager.save(
         manager.create(FichaSalud, { ...fichaSalud, animalId: animal.id }),
@@ -146,8 +149,17 @@ export class AnimalesService {
   }
 
   // PATCH: solo se actualizan los campos que llegaron.
-  async update(id: string, dto: UpdateAnimalDto): Promise<Animal> {
-    await this.findOne(id);
+  // 403 si el animal es de otra fundación.
+  async update(
+    id: string,
+    dto: UpdateAnimalDto,
+    fundacionIdUsuario: string,
+  ): Promise<Animal> {
+    const animal = await this.findOne(id);
+    this.animalRules.assertEsDeLaFundacion(
+      animal.fundacionId,
+      fundacionIdUsuario,
+    );
 
     const cambios = Object.fromEntries(
       Object.entries(dto).filter(([, valor]) => valor !== undefined),
@@ -159,9 +171,18 @@ export class AnimalesService {
     return this.findOne(id);
   }
 
-  // Cambio de estado manual. Las reglas las decide AnimalRulesService (409).
-  async cambiarEstado(id: string, dto: UpdateEstadoAnimalDto): Promise<Animal> {
+  // Cambio de estado manual. Las reglas las decide AnimalRulesService:
+  // 403 si es de otra fundación, 409 si la transición no está permitida.
+  async cambiarEstado(
+    id: string,
+    dto: UpdateEstadoAnimalDto,
+    fundacionIdUsuario: string,
+  ): Promise<Animal> {
     const animal = await this.findOne(id);
+    this.animalRules.assertEsDeLaFundacion(
+      animal.fundacionId,
+      fundacionIdUsuario,
+    );
     this.animalRules.assertCambioEstadoManual(animal.estado, dto.estado);
 
     await this.animalesRepository.update(id, { estado: dto.estado });
@@ -194,8 +215,16 @@ export class AnimalesService {
   }
 
   // Eliminar. Las fotos y la ficha se borran solas (ON DELETE CASCADE).
-  async remove(id: string): Promise<{ deleted: number }> {
-    await this.findOne(id);
+  // 403 si es de otra fundación, 409 si tiene solicitudes.
+  async remove(
+    id: string,
+    fundacionIdUsuario: string,
+  ): Promise<{ deleted: number }> {
+    const animal = await this.findOne(id);
+    this.animalRules.assertEsDeLaFundacion(
+      animal.fundacionId,
+      fundacionIdUsuario,
+    );
 
     const cantidadSolicitudes = await this.solicitudesRepository.count({
       where: { animalId: id },

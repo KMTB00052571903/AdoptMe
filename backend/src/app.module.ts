@@ -8,6 +8,7 @@ import { AnimalesModule } from './animales/animales.module';
 import { SolicitudesModule } from './solicitudes/solicitudes.module';
 import { SeguimientoModule } from './seguimiento/seguimiento.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { NotificacionesModule } from './notificaciones/notificaciones.module';
     SolicitudesModule,
     SeguimientoModule,
     NotificacionesModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
