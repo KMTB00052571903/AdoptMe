@@ -146,8 +146,14 @@ export class AnimalesService {
   }
 
   // PATCH: solo se actualizan los campos que llegaron.
-  async update(id: string, dto: UpdateAnimalDto): Promise<Animal> {
-    await this.findOne(id);
+  // 403 si el animal es de otra fundación.
+  async update(
+    id: string,
+    dto: UpdateAnimalDto,
+    fundacionIdUsuario?: string,
+  ): Promise<Animal> {
+    const animal = await this.findOne(id);
+    this.verificarQueEsDeLaFundacion(animal, fundacionIdUsuario);
 
     const cambios = Object.fromEntries(
       Object.entries(dto).filter(([, valor]) => valor !== undefined),
@@ -159,9 +165,15 @@ export class AnimalesService {
     return this.findOne(id);
   }
 
-  // Cambio de estado manual. Las reglas las decide AnimalRulesService (409).
-  async cambiarEstado(id: string, dto: UpdateEstadoAnimalDto): Promise<Animal> {
+  // Cambio de estado manual. Las reglas las decide AnimalRulesService:
+  // 403 si es de otra fundación, 409 si la transición no está permitida.
+  async cambiarEstado(
+    id: string,
+    dto: UpdateEstadoAnimalDto,
+    fundacionIdUsuario?: string,
+  ): Promise<Animal> {
     const animal = await this.findOne(id);
+    this.verificarQueEsDeLaFundacion(animal, fundacionIdUsuario);
     this.animalRules.assertCambioEstadoManual(animal.estado, dto.estado);
 
     await this.animalesRepository.update(id, { estado: dto.estado });
@@ -194,8 +206,13 @@ export class AnimalesService {
   }
 
   // Eliminar. Las fotos y la ficha se borran solas (ON DELETE CASCADE).
-  async remove(id: string): Promise<{ deleted: number }> {
-    await this.findOne(id);
+  // 403 si es de otra fundación, 409 si tiene solicitudes.
+  async remove(
+    id: string,
+    fundacionIdUsuario?: string,
+  ): Promise<{ deleted: number }> {
+    const animal = await this.findOne(id);
+    this.verificarQueEsDeLaFundacion(animal, fundacionIdUsuario);
 
     const cantidadSolicitudes = await this.solicitudesRepository.count({
       where: { animalId: id },
@@ -204,6 +221,20 @@ export class AnimalesService {
 
     const result = await this.animalesRepository.delete(id);
     return { deleted: result.affected ?? 0 };
+  }
+
+  // TEMPORAL: mientras no exista Auth en develop, el controlador no envía
+  // fundacionIdUsuario y no se revisa. Con el guard, siempre llega del token.
+  private verificarQueEsDeLaFundacion(
+    animal: Animal,
+    fundacionIdUsuario?: string,
+  ): void {
+    if (fundacionIdUsuario !== undefined) {
+      this.animalRules.assertEsDeLaFundacion(
+        animal.fundacionId,
+        fundacionIdUsuario,
+      );
+    }
   }
 
   // La foto con orden 1 (la principal) queda siempre de primera.

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -202,6 +203,52 @@ describe('AnimalesService', () => {
       expect(animalesRepository.update).toHaveBeenCalledWith('animal-1', {
         estado: EstadoAnimal.NO_DISPONIBLE,
       });
+    });
+  });
+
+  describe('solo la fundación dueña modifica el animal', () => {
+    // El animal es de fundacion-1; la petición la hace fundacion-2.
+    beforeEach(() => {
+      animalesRepository.findOne.mockResolvedValue({
+        id: 'animal-1',
+        fundacionId: 'fundacion-1',
+        estado: EstadoAnimal.DISPONIBLE,
+        fotos: [],
+      });
+    });
+
+    it('update: lanza 403 si el animal es de otra fundación y no actualiza', async () => {
+      await expect(
+        service.update('animal-1', { nombre: 'Otro' }, 'fundacion-2'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(animalesRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('update: actualiza si el animal es de la misma fundación', async () => {
+      await service.update('animal-1', { nombre: 'Otro' }, 'fundacion-1');
+
+      expect(animalesRepository.update).toHaveBeenCalledWith('animal-1', {
+        nombre: 'Otro',
+      });
+    });
+
+    it('cambiarEstado: lanza 403 si el animal es de otra fundación', async () => {
+      await expect(
+        service.cambiarEstado(
+          'animal-1',
+          { estado: EstadoAnimal.NO_DISPONIBLE },
+          'fundacion-2',
+        ),
+      ).rejects.toThrow(ForbiddenException);
+      expect(animalesRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('remove: lanza 403 si el animal es de otra fundación y no borra', async () => {
+      await expect(service.remove('animal-1', 'fundacion-2')).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(solicitudesRepository.count).not.toHaveBeenCalled();
+      expect(animalesRepository.delete).not.toHaveBeenCalled();
     });
   });
 
