@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { EstadoAnimal } from '../common/enums/estado-animal.enum';
 import { AnimalRulesService } from './animal-rules.service';
 
@@ -9,6 +9,20 @@ describe('AnimalRulesService', () => {
   // así que se crea directo, sin módulo de pruebas ni mocks.
   beforeEach(() => {
     rules = new AnimalRulesService();
+  });
+
+  describe('assertEsDeLaFundacion', () => {
+    it('permite si el animal es de la misma fundación', () => {
+      expect(() =>
+        rules.assertEsDeLaFundacion('fundacion-1', 'fundacion-1'),
+      ).not.toThrow();
+    });
+
+    it('lanza 403 si el animal es de otra fundación', () => {
+      expect(() =>
+        rules.assertEsDeLaFundacion('fundacion-1', 'fundacion-2'),
+      ).toThrow(ForbiddenException);
+    });
   });
 
   describe('assertCambioEstadoManual', () => {

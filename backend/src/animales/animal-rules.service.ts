@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { EstadoAnimal } from '../common/enums/estado-animal.enum';
 
 // Cambios de estado que puede hacer el flujo de solicitudes (F2).
@@ -18,9 +22,21 @@ const TRANSICIONES_POR_SOLICITUD: Record<EstadoAnimal, EstadoAnimal[]> = {
 };
 
 // Reglas de negocio de F1. No usa base de datos ni HTTP: solo decide si una
-// acción está permitida. Si no lo está, lanza 409 (Conflict).
+// acción está permitida. Si no lo está, lanza 409 (Conflict) o 403 (Forbidden).
 @Injectable()
 export class AnimalRulesService {
+  // Una fundación solo puede editar, cambiar de estado o borrar SUS animales.
+  // El guard de Auth revisa que sea una fundación; esta regla revisa que sea
+  // la dueña de este animal en particular.
+  assertEsDeLaFundacion(
+    fundacionIdAnimal: string,
+    fundacionIdUsuario: string,
+  ): void {
+    if (fundacionIdAnimal !== fundacionIdUsuario) {
+      throw new ForbiddenException('Este animal pertenece a otra fundación');
+    }
+  }
+
   // Cambio de estado manual (PATCH /animales/:id/estado).
   // La fundación solo puede alternar entre 'disponible' y 'no_disponible'.
   // 'en_proceso' y 'adoptado' solo los pone el flujo de solicitudes (F2).
