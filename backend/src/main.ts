@@ -10,6 +10,8 @@ async function bootstrap() {
   // Interceptor global: se aplica a todas las rutas de todos los módulos.
   app.useGlobalInterceptors(new LoggingInterceptor());
 
-  await app.listen(process.env.PORT ?? 3000);
+  // Render asigna el puerto en PORT. '0.0.0.0' permite recibir peticiones
+  // desde fuera del servidor (con localhost solo respondería a sí mismo).
+  await app.listen(Number(process.env.PORT ?? 3000), '0.0.0.0');
 }
 bootstrap();
