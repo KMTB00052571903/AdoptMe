@@ -1,5 +1,5 @@
 import { ConflictException } from '@nestjs/common';
-import { Usuario } from '../usuarios/entities/usuario.entity';
+import { Usuario } from '../users/entities/user.entity';
 import { AuthRulesService } from './auth-rules.service';
 
 describe('AuthRulesService', () => {

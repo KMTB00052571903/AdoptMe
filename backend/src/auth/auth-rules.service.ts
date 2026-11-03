@@ -1,5 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { Usuario } from '../usuarios/entities/usuario.entity';
+import { Usuario } from '../users/entities/user.entity';
 
 // Reglas de Auth: deciden si una operación está permitida.
 // No consultan ni guardan en la base de datos; reciben los datos ya buscados.

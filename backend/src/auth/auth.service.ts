@@ -7,16 +7,16 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { DataSource, QueryFailedError, Repository } from 'typeorm';
-import { RolUsuario } from '../common/enums/rol-usuario.enum';
-import { Adoptante } from '../usuarios/entities/adoptante.entity';
-import { Fundacion } from '../usuarios/entities/fundacion.entity';
-import { Usuario } from '../usuarios/entities/usuario.entity';
+import { RolUsuario } from '../common/enums/user-role.enum';
+import { Adoptante } from '../users/entities/adopter.entity';
+import { Fundacion } from '../users/entities/foundation.entity';
+import { Usuario } from '../users/entities/user.entity';
 import { AuthRulesService } from './auth-rules.service';
 import { LoginDto } from './dto/login.dto';
-import { RegistroAdoptanteDto } from './dto/registro-adoptante.dto';
-import { RegistroFundacionDto } from './dto/registro-fundacion.dto';
+import { RegistroAdoptanteDto } from './dto/register-adopter.dto';
+import { RegistroFundacionDto } from './dto/register-foundation.dto';
 import { JwtPayload } from './jwt-payload.interface';
-import { UsuarioPublico } from './usuario-publico.interface';
+import { UsuarioPublico } from './public-user.interface';
 
 // Código de PostgreSQL para "violación de una restricción UNIQUE".
 const UNIQUE_VIOLATION = '23505';

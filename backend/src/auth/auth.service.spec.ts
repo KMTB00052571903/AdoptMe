@@ -4,10 +4,10 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { DataSource, QueryFailedError } from 'typeorm';
-import { RolUsuario } from '../common/enums/rol-usuario.enum';
-import { Adoptante } from '../usuarios/entities/adoptante.entity';
-import { Fundacion } from '../usuarios/entities/fundacion.entity';
-import { Usuario } from '../usuarios/entities/usuario.entity';
+import { RolUsuario } from '../common/enums/user-role.enum';
+import { Adoptante } from '../users/entities/adopter.entity';
+import { Fundacion } from '../users/entities/foundation.entity';
+import { Usuario } from '../users/entities/user.entity';
 import { AuthRulesService } from './auth-rules.service';
 import { AuthService } from './auth.service';
 

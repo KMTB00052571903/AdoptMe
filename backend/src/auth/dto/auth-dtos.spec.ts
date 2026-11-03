@@ -1,8 +1,8 @@
 import { BadRequestException, Type } from '@nestjs/common';
 import { requestValidationPipe } from '../../common/request-validation.pipe';
 import { LoginDto } from './login.dto';
-import { RegistroAdoptanteDto } from './registro-adoptante.dto';
-import { RegistroFundacionDto } from './registro-fundacion.dto';
+import { RegistroAdoptanteDto } from './register-adopter.dto';
+import { RegistroFundacionDto } from './register-foundation.dto';
 
 // Ejecuta el pipe real igual que lo hace Nest con @Body(requestValidationPipe).
 function validarBody(body: object, dto: Type<unknown>): Promise<unknown> {

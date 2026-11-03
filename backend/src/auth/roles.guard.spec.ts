@@ -4,10 +4,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RolUsuario } from '../common/enums/rol-usuario.enum';
+import { RolUsuario } from '../common/enums/user-role.enum';
 import { ROLES_KEY, Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
-import { UsuarioAutenticado } from './usuario-autenticado.interface';
+import { UsuarioAutenticado } from './authenticated-user.interface';
 
 // Contexto simulado: lo mínimo que RolesGuard lee de una petición real.
 function crearContexto(user?: UsuarioAutenticado): ExecutionContext {

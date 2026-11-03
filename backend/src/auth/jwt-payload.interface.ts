@@ -1,4 +1,4 @@
-import { RolUsuario } from '../common/enums/rol-usuario.enum';
+import { RolUsuario } from '../common/enums/user-role.enum';
 
 // Datos (claims) que viajan dentro del JWT. Cualquiera puede leerlos:
 // nunca incluir contraseñas, hashes ni otros secretos.

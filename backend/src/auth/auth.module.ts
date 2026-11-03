@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Usuario } from '../usuarios/entities/usuario.entity';
+import { Usuario } from '../users/entities/user.entity';
 import { AuthController } from './auth.controller';
 import { AuthRulesService } from './auth-rules.service';
 import { AuthService } from './auth.service';

@@ -11,11 +11,11 @@ import {
 import { requestValidationPipe } from '../common/request-validation.pipe';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RegistroAdoptanteDto } from './dto/registro-adoptante.dto';
-import { RegistroFundacionDto } from './dto/registro-fundacion.dto';
+import { RegistroAdoptanteDto } from './dto/register-adopter.dto';
+import { RegistroFundacionDto } from './dto/register-foundation.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import type { RequestConUsuario } from './request-con-usuario.interface';
-import type { UsuarioAutenticado } from './usuario-autenticado.interface';
+import type { RequestConUsuario } from './request-with-user.interface';
+import type { UsuarioAutenticado } from './authenticated-user.interface';
 
 // Rutas de autenticación. Valida el body con el pipe compartido y delega
 // en AuthService; no contiene reglas de negocio ni consultas.

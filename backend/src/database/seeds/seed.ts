@@ -1,16 +1,16 @@
 import * as argon2 from 'argon2';
 import dataSource from '../data-source';
-import { EspecieAnimal } from '../../common/enums/especie-animal.enum';
-import { EstadoAnimal } from '../../common/enums/estado-animal.enum';
-import { RolUsuario } from '../../common/enums/rol-usuario.enum';
-import { SexoAnimal } from '../../common/enums/sexo-animal.enum';
-import { TamanoAnimal } from '../../common/enums/tamano-animal.enum';
-import { Animal } from '../../animales/entities/animal.entity';
-import { FichaSalud } from '../../animales/entities/ficha-salud.entity';
-import { FotoAnimal } from '../../animales/entities/foto-animal.entity';
-import { Adoptante } from '../../usuarios/entities/adoptante.entity';
-import { Fundacion } from '../../usuarios/entities/fundacion.entity';
-import { Usuario } from '../../usuarios/entities/usuario.entity';
+import { EspecieAnimal } from '../../common/enums/animal-species.enum';
+import { EstadoAnimal } from '../../common/enums/animal-status.enum';
+import { RolUsuario } from '../../common/enums/user-role.enum';
+import { SexoAnimal } from '../../common/enums/animal-sex.enum';
+import { TamanoAnimal } from '../../common/enums/animal-size.enum';
+import { Animal } from '../../animals/entities/animal.entity';
+import { FichaSalud } from '../../animals/entities/health-record.entity';
+import { FotoAnimal } from '../../animals/entities/animal-photo.entity';
+import { Adoptante } from '../../users/entities/adopter.entity';
+import { Fundacion } from '../../users/entities/foundation.entity';
+import { Usuario } from '../../users/entities/user.entity';
 
 // Datos de prueba para desarrollo. Todos los usuarios tienen la misma
 // contraseña para que el equipo pueda hacer login (está en el README).

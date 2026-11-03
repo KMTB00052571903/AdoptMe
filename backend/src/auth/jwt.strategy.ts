@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from './jwt-payload.interface';
-import { UsuarioAutenticado } from './usuario-autenticado.interface';
+import { UsuarioAutenticado } from './authenticated-user.interface';
 
 // Enseña a Passport a reconocer nuestros tokens: los lee de
 // "Authorization: Bearer <token>" y comprueba firma y caducidad con JWT_SECRET.

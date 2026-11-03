@@ -6,8 +6,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RolUsuario } from '../common/enums/rol-usuario.enum';
-import { RequestConUsuario } from './request-con-usuario.interface';
+import { RolUsuario } from '../common/enums/user-role.enum';
+import { RequestConUsuario } from './request-with-user.interface';
 import { ROLES_KEY } from './roles.decorator';
 
 // Portero de autorización. Va DESPUÉS de JwtAuthGuard, que deja request.user:

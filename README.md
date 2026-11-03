@@ -22,9 +22,9 @@ AdoptMe es una plataforma web de adopción y seguimiento de perros y gatos para 
 
 | Funcionalidad | Descripción | Módulo |
 | --- | --- | --- |
-| F1 — Animales | Fichas de animales, fotos, ficha de salud y estados | `animales` |
-| F2 — Solicitudes | Solicitud de adopción, aprobación y rechazo | `solicitudes` |
-| F3 — Seguimiento | Checkpoints post-adopción a los 30 y 90 días | `seguimiento` |
+| F1 — Animales | Fichas de animales, fotos, ficha de salud y estados | `animals` |
+| F2 — Solicitudes | Solicitud de adopción, aprobación y rechazo | `adoption-requests` |
+| F3 — Seguimiento | Checkpoints post-adopción a los 30 y 90 días | `tracking` |
 | Autenticación | Registro, login con JWT y roles (fundación / adoptante) | `auth` |
 
 ## 🧠 Estructura del Proyecto (Scaffolding)
@@ -33,39 +33,39 @@ AdoptMe es una plataforma web de adopción y seguimiento de perros y gatos para 
 AdoptMe/
 ├── backend/                          # API REST en NestJS
 │   ├── src/
-│   │   ├── animales/                 # F1: animales, fotos y ficha de salud
+│   │   ├── animals/                  # F1: animales, fotos y ficha de salud
 │   │   │   ├── dto/                  # Datos que acepta cada endpoint (con validaciones)
 │   │   │   ├── entities/
 │   │   │   │   ├── animal.entity.ts
-│   │   │   │   ├── foto-animal.entity.ts
-│   │   │   │   └── ficha-salud.entity.ts
+│   │   │   │   ├── animal-photo.entity.ts
+│   │   │   │   └── health-record.entity.ts
 │   │   │   ├── animal-rules.service.ts    # Reglas de negocio (qué cambios están permitidos)
-│   │   │   ├── animales.controller.ts     # Endpoints /animales
-│   │   │   ├── animales.service.ts        # Lógica: crear, catálogo, detalle, editar, estado, eliminar
+│   │   │   ├── animals.controller.ts      # Endpoints /animales
+│   │   │   ├── animals.service.ts         # Lógica: crear, catálogo, detalle, editar, estado, eliminar
 │   │   │   ├── *.spec.ts                  # Pruebas unitarias
-│   │   │   └── animales.module.ts
+│   │   │   └── animals.module.ts
 │   │   │
-│   │   ├── solicitudes/              # F2: solicitudes de adopción
+│   │   ├── adoption-requests/        # F2: solicitudes de adopción
 │   │   │   ├── entities/
-│   │   │   │   └── solicitud-adopcion.entity.ts
-│   │   │   └── solicitudes.module.ts
+│   │   │   │   └── adoption-request.entity.ts
+│   │   │   └── adoption-requests.module.ts
 │   │   │
-│   │   ├── seguimiento/              # F3: checkpoints post-adopción
+│   │   ├── tracking/                 # F3: checkpoints post-adopción
 │   │   │   ├── entities/
 │   │   │   │   └── checkpoint.entity.ts
-│   │   │   └── seguimiento.module.ts
+│   │   │   └── tracking.module.ts
 │   │   │
-│   │   ├── usuarios/                 # Usuario, fundación y adoptante
+│   │   ├── users/                    # Usuario, fundación y adoptante
 │   │   │   ├── entities/
-│   │   │   │   ├── usuario.entity.ts
-│   │   │   │   ├── fundacion.entity.ts
-│   │   │   │   └── adoptante.entity.ts
-│   │   │   └── usuarios.module.ts
+│   │   │   │   ├── user.entity.ts
+│   │   │   │   ├── foundation.entity.ts
+│   │   │   │   └── adopter.entity.ts
+│   │   │   └── users.module.ts
 │   │   │
-│   │   ├── notificaciones/           # Avisos para los usuarios
+│   │   ├── notifications/            # Avisos para los usuarios
 │   │   │   ├── entities/
-│   │   │   │   └── notificacion.entity.ts
-│   │   │   └── notificaciones.module.ts
+│   │   │   │   └── notification.entity.ts
+│   │   │   └── notifications.module.ts
 │   │   │
 │   │   ├── common/
 │   │   │   ├── enums/                # Valores permitidos (especie, estados, roles, etc.)

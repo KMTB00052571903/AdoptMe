@@ -3,11 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsuariosModule } from './usuarios/usuarios.module';
-import { AnimalesModule } from './animales/animales.module';
-import { SolicitudesModule } from './solicitudes/solicitudes.module';
-import { SeguimientoModule } from './seguimiento/seguimiento.module';
-import { NotificacionesModule } from './notificaciones/notificaciones.module';
+import { UsuariosModule } from './users/users.module';
+import { AnimalesModule } from './animals/animals.module';
+import { SolicitudesModule } from './adoption-requests/adoption-requests.module';
+import { SeguimientoModule } from './tracking/tracking.module';
+import { NotificacionesModule } from './notifications/notifications.module';
 import { AuthModule } from './auth/auth.module';
 
 @Module({

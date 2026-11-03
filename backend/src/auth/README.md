@@ -35,8 +35,8 @@ import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import type { RequestConUsuario } from '../auth/request-con-usuario.interface';
-import { RolUsuario } from '../common/enums/rol-usuario.enum';
+import type { RequestConUsuario } from '../auth/request-with-user.interface';
+import { RolUsuario } from '../common/enums/user-role.enum';
 import { requestValidationPipe } from '../common/request-validation.pipe';
 
 @Controller('animales')
