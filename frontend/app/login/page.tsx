@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import AuthShell from "../../components/auth/auth-shell";
@@ -71,11 +72,16 @@ const MENSAJES_ERROR: Record<string, string> = {
 };
 
 type LoginPageProps = {
-  searchParams: Promise<{ tipo?: string; error?: string; expired?: string }>;
+  searchParams: Promise<{
+    tipo?: string;
+    error?: string;
+    expired?: string;
+    registered?: string;
+  }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { tipo, error, expired } = await searchParams;
+  const { tipo, error, expired, registered } = await searchParams;
   const rol: Rol = tipo === "fundacion" ? "fundacion" : "adoptante";
   const estilo = ESTILOS_ROL[rol];
   const mensajeError = error ? MENSAJES_ERROR[error] : undefined;
@@ -99,6 +105,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         {mensajeError && (
           <FormAlert variant="error" className="mt-4">
             {mensajeError}
+          </FormAlert>
+        )}
+        {registered === "1" && !mensajeError && expired !== "1" && (
+          <FormAlert variant="success" className="mt-4">
+            Cuenta creada. Ya puedes iniciar sesión.
           </FormAlert>
         )}
 
@@ -148,6 +159,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Iniciar sesión
           </SubmitButton>
         </form>
+
+        {/* Según Figma y el UserFlow, solo el adoptante puede registrarse. */}
+        {rol === "adoptante" && (
+          <p className="mt-6 text-center text-sm text-[#757575]">
+            ¿No tienes cuenta?{" "}
+            <Link href="/register" className={`${estilo.texto} font-semibold underline`}>
+              Registrarme.
+            </Link>
+          </p>
+        )}
       </div>
     </AuthShell>
   );
