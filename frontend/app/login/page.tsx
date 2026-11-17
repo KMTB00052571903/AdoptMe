@@ -10,7 +10,7 @@ import { PANEL_POR_ROL } from "../../lib/routes";
 import type { Rol } from "../../types/auth";
 
 // Tipografías del diseño de Figma. Se cargan solo en esta página.
-const fredoka = Fredoka({ weight: "600", subsets: ["latin"] });
+const fredoka = Fredoka({ weight: "700", subsets: ["latin"] });
 const nunito = Nunito({ weight: "800", subsets: ["latin"] });
 const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
@@ -151,8 +151,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
               <label className="flex flex-col gap-2 text-base text-black">
                 E-mail
-                <span className="flex h-[60px] overflow-hidden rounded-lg border-2 border-[#BDBDBD]">
-                  <span className={`${estilo.fondo} flex w-[60px] shrink-0 items-center justify-center`}>
+                <span className="flex h-[60px]">
+                  <span className={`${estilo.fondo} flex w-12 shrink-0 items-center justify-center rounded-l-lg lg:w-[60px]`}>
                     <IconoSobre />
                   </span>
                   <input
@@ -162,15 +162,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                     required
                     maxLength={128}
                     placeholder="Insertar E-mail..."
-                    className="min-w-0 flex-1 bg-[#F7F7F7] px-3 text-black placeholder:text-[#9E9E9E] focus:outline-none"
+                    className="min-w-0 flex-1 rounded-r-lg border-2 border-l-0 border-[#BDBDBD] bg-[#F7F7F7] px-3 text-black placeholder:text-[#9E9E9E] focus:outline-none"
                   />
                 </span>
               </label>
 
               <label className="flex flex-col gap-2 text-base text-black">
                 Contraseña
-                <span className="flex h-[60px] overflow-hidden rounded-lg border-2 border-[#BDBDBD]">
-                  <span className={`${estilo.fondo} flex w-[60px] shrink-0 items-center justify-center`}>
+                <span className="flex h-[60px]">
+                  <span className={`${estilo.fondo} flex w-12 shrink-0 items-center justify-center rounded-l-lg lg:w-[60px]`}>
                     <IconoCandado />
                   </span>
                   <input
@@ -180,7 +180,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                     required
                     maxLength={128}
                     placeholder="Insertar Contraseña..."
-                    className="min-w-0 flex-1 bg-[#F7F7F7] px-3 text-black placeholder:text-[#9E9E9E] focus:outline-none"
+                    className="min-w-0 flex-1 rounded-r-lg border-2 border-l-0 border-[#BDBDBD] bg-[#F7F7F7] px-3 text-black placeholder:text-[#9E9E9E] focus:outline-none"
                   />
                 </span>
               </label>
