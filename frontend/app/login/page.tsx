@@ -16,15 +16,19 @@ const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
 // Clases de Tailwind por rol. Se escriben completas porque Tailwind solo
 // genera las clases que encuentra escritas tal cual en el código.
-const ESTILOS: Record<Rol, { fondo: string; texto: string; logo: string }> = {
+// "foco" pinta el borde del campo con el color del rol cuando está enfocado,
+// para que se vea qué campo está activo al navegar con Tab.
+const ESTILOS: Record<Rol, { fondo: string; texto: string; foco: string; logo: string }> = {
   adoptante: {
     fondo: "bg-[#4D70E6]",
     texto: "text-[#4D70E6]",
+    foco: "focus-visible:border-[#4D70E6]",
     logo: "/logo-adoptante.png",
   },
   fundacion: {
     fondo: "bg-[#005595]",
     texto: "text-[#005595]",
+    foco: "focus-visible:border-[#005595]",
     logo: "/logo-fundacion.png",
   },
 };
@@ -162,7 +166,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                     required
                     maxLength={128}
                     placeholder="Insertar E-mail..."
-                    className="min-w-0 flex-1 rounded-r-lg border-2 border-l-0 border-[#BDBDBD] bg-[#F7F7F7] px-3 text-black placeholder:text-[#9E9E9E] focus:outline-none"
+                    className={`${estilo.foco} min-w-0 flex-1 rounded-r-lg border-2 border-l-0 border-[#BDBDBD] bg-[#F7F7F7] px-3 text-black placeholder:text-[#9E9E9E] focus:outline-none`}
                   />
                 </span>
               </label>
@@ -180,7 +184,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                     required
                     maxLength={128}
                     placeholder="Insertar Contraseña..."
-                    className="min-w-0 flex-1 rounded-r-lg border-2 border-l-0 border-[#BDBDBD] bg-[#F7F7F7] px-3 text-black placeholder:text-[#9E9E9E] focus:outline-none"
+                    className={`${estilo.foco} min-w-0 flex-1 rounded-r-lg border-2 border-l-0 border-[#BDBDBD] bg-[#F7F7F7] px-3 text-black placeholder:text-[#9E9E9E] focus:outline-none`}
                   />
                 </span>
               </label>
