@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 
 // Datos de salud que se envían junto con el animal al publicarlo (HU01).
-export class CreateFichaSaludDto {
+export class CreateHealthRecordDto {
   @IsBoolean()
   vacunasAlDia!: boolean;
 

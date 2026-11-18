@@ -3,11 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SolicitudAdopcion } from '../adoption-requests/entities/adoption-request.entity';
 import { Fundacion } from '../users/entities/foundation.entity';
 import { AnimalRulesService } from './animal-rules.service';
-import { AnimalesService } from './animals.service';
+import { AnimalsService } from './animals.service';
 import { Animal } from './entities/animal.entity';
-import { FichaSalud } from './entities/health-record.entity';
-import { FotoAnimal } from './entities/animal-photo.entity';
-import { AnimalesController } from './animals.controller';
+import { HealthRecord } from './entities/health-record.entity';
+import { AnimalPhoto } from './entities/animal-photo.entity';
+import { AnimalsController } from './animals.controller';
 
 // forFeature registra los repositorios que este módulo puede inyectar.
 // Fundacion y SolicitudAdopcion se usan para validar y contar.
@@ -15,14 +15,14 @@ import { AnimalesController } from './animals.controller';
   imports: [
     TypeOrmModule.forFeature([
       Animal,
-      FotoAnimal,
-      FichaSalud,
+      AnimalPhoto,
+      HealthRecord,
       Fundacion,
       SolicitudAdopcion,
     ]),
   ],
-  controllers: [AnimalesController],
-  providers: [AnimalesService, AnimalRulesService],
-  exports: [AnimalesService],
+  controllers: [AnimalsController],
+  providers: [AnimalsService, AnimalRulesService],
+  exports: [AnimalsService],
 })
-export class AnimalesModule {}
+export class AnimalsModule {}

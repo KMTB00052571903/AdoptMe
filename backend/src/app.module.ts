@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsuariosModule } from './users/users.module';
-import { AnimalesModule } from './animals/animals.module';
+import { AnimalsModule } from './animals/animals.module';
 import { SolicitudesModule } from './adoption-requests/adoption-requests.module';
 import { SeguimientoModule } from './tracking/tracking.module';
 import { NotificacionesModule } from './notifications/notifications.module';
@@ -30,7 +30,7 @@ import { AuthModule } from './auth/auth.module';
       }),
     }),
     UsuariosModule,
-    AnimalesModule,
+    AnimalsModule,
     SolicitudesModule,
     SeguimientoModule,
     NotificacionesModule,

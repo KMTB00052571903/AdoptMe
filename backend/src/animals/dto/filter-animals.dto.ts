@@ -8,19 +8,19 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { EspecieAnimal } from '../../common/enums/animal-species.enum';
-import { TamanoAnimal } from '../../common/enums/animal-size.enum';
+import { AnimalSpecies } from '../../common/enums/animal-species.enum';
+import { AnimalSize } from '../../common/enums/animal-size.enum';
 
 // Query del catálogo: GET /animales?especie=perro&tamano=mediano&page=1&limit=10
 // Todo llega por la URL como texto; @Type(() => Number) convierte los números.
-export class FilterAnimalesDto {
+export class FilterAnimalsDto {
   @IsOptional()
-  @IsEnum(EspecieAnimal)
-  especie?: EspecieAnimal;
+  @IsEnum(AnimalSpecies)
+  especie?: AnimalSpecies;
 
   @IsOptional()
-  @IsEnum(TamanoAnimal)
-  tamano?: TamanoAnimal;
+  @IsEnum(AnimalSize)
+  tamano?: AnimalSize;
 
   // Ciudad de la fundación (HU02).
   @IsOptional()

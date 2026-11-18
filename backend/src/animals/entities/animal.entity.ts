@@ -7,13 +7,13 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { EspecieAnimal } from '../../common/enums/animal-species.enum';
-import { EstadoAnimal } from '../../common/enums/animal-status.enum';
-import { SexoAnimal } from '../../common/enums/animal-sex.enum';
-import { TamanoAnimal } from '../../common/enums/animal-size.enum';
+import { AnimalSpecies } from '../../common/enums/animal-species.enum';
+import { AnimalStatus } from '../../common/enums/animal-status.enum';
+import { AnimalSex } from '../../common/enums/animal-sex.enum';
+import { AnimalSize } from '../../common/enums/animal-size.enum';
 import { Fundacion } from '../../users/entities/foundation.entity';
-import { FichaSalud } from './health-record.entity';
-import { FotoAnimal } from './animal-photo.entity';
+import { HealthRecord } from './health-record.entity';
+import { AnimalPhoto } from './animal-photo.entity';
 import { SolicitudAdopcion } from '../../adoption-requests/entities/adoption-request.entity';
 
 @Entity('animal')
@@ -36,11 +36,11 @@ export class Animal {
   @Column({ type: 'varchar' })
   nombre: string;
 
-  @Column({ type: 'enum', enum: EspecieAnimal })
-  especie: EspecieAnimal;
+  @Column({ type: 'enum', enum: AnimalSpecies })
+  especie: AnimalSpecies;
 
-  @Column({ type: 'enum', enum: SexoAnimal })
-  sexo: SexoAnimal;
+  @Column({ type: 'enum', enum: AnimalSex })
+  sexo: AnimalSex;
 
   @Column({ name: 'raza_aproximada', type: 'varchar', nullable: true })
   razaAproximada: string | null;
@@ -49,15 +49,15 @@ export class Animal {
   @Column({ name: 'edad_aproximada_meses', type: 'int' })
   edadAproximadaMeses: number;
 
-  @Column({ type: 'enum', enum: TamanoAnimal })
-  tamano: TamanoAnimal;
+  @Column({ type: 'enum', enum: AnimalSize })
+  tamano: AnimalSize;
 
   @Column({
     type: 'enum',
-    enum: EstadoAnimal,
-    default: EstadoAnimal.DISPONIBLE,
+    enum: AnimalStatus,
+    default: AnimalStatus.AVAILABLE,
   })
-  estado: EstadoAnimal;
+  estado: AnimalStatus;
 
   // Texto que ve el adoptante en la ficha del catálogo. Obligatorio.
   @Column({ type: 'text' })
@@ -68,15 +68,15 @@ export class Animal {
   fechaIngreso: string;
 
   // Lado inverso 1:N (no crea columnas). La foto con orden 1 es la principal.
-  @OneToMany(() => FotoAnimal, (foto) => foto.animal)
-  fotos: FotoAnimal[];
+  @OneToMany(() => AnimalPhoto, (foto) => foto.animal)
+  fotos: AnimalPhoto[];
 
   // Lado inverso 1:1 (la FK está en ficha_salud). cascade: ['insert'] permite
   // guardar la ficha nueva junto con el animal en un solo save().
   // La base de datos solo garantiza "como máximo una" ficha por animal; que
   // siempre exista una dependerá del servicio de creación de animales.
-  @OneToOne(() => FichaSalud, (ficha) => ficha.animal, { cascade: ['insert'] })
-  fichaSalud: FichaSalud;
+  @OneToOne(() => HealthRecord, (ficha) => ficha.animal, { cascade: ['insert'] })
+  fichaSalud: HealthRecord;
 
   // Lado inverso 1:N (no crea columnas). Histórico de solicitudes del animal.
   @OneToMany(() => SolicitudAdopcion, (solicitud) => solicitud.animal)

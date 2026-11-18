@@ -15,27 +15,27 @@ import {
   Raw,
   Repository,
 } from 'typeorm';
-import { EstadoAnimal } from '../common/enums/animal-status.enum';
+import { AnimalStatus } from '../common/enums/animal-status.enum';
 import { SolicitudAdopcion } from '../adoption-requests/entities/adoption-request.entity';
 import { Fundacion } from '../users/entities/foundation.entity';
 import { AnimalRulesService } from './animal-rules.service';
 import { CreateAnimalDto } from './dto/create-animal.dto';
-import { FilterAnimalesDto } from './dto/filter-animals.dto';
+import { FilterAnimalsDto } from './dto/filter-animals.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
-import { UpdateEstadoAnimalDto } from './dto/update-animal-status.dto';
+import { UpdateAnimalStatusDto } from './dto/update-animal-status.dto';
 import { Animal } from './entities/animal.entity';
-import { FichaSalud } from './entities/health-record.entity';
-import { FotoAnimal } from './entities/animal-photo.entity';
+import { HealthRecord } from './entities/health-record.entity';
+import { AnimalPhoto } from './entities/animal-photo.entity';
 
 @Injectable()
-export class AnimalesService {
+export class AnimalsService {
   constructor(
     @InjectRepository(Animal)
-    private readonly animalesRepository: Repository<Animal>,
+    private readonly animalsRepository: Repository<Animal>,
     @InjectRepository(Fundacion)
-    private readonly fundacionesRepository: Repository<Fundacion>,
+    private readonly foundationsRepository: Repository<Fundacion>,
     @InjectRepository(SolicitudAdopcion)
-    private readonly solicitudesRepository: Repository<SolicitudAdopcion>,
+    private readonly requestsRepository: Repository<SolicitudAdopcion>,
     private readonly animalRules: AnimalRulesService,
     private readonly dataSource: DataSource,
   ) {}
@@ -43,30 +43,30 @@ export class AnimalesService {
   // HU01: publicar un animal con su ficha de salud y sus fotos.
   // fundacionId viene del token (el controlador lo saca de req.user).
   async create(dto: CreateAnimalDto, fundacionId: string): Promise<Animal> {
-    const existeFundacion = await this.fundacionesRepository.existsBy({
+    const foundationExists = await this.foundationsRepository.existsBy({
       id: fundacionId,
     });
-    if (!existeFundacion) {
+    if (!foundationExists) {
       throw new NotFoundException(`Fundación ${fundacionId} no encontrada`);
     }
 
-    const { fotos, fichaSalud, ...datosAnimal } = dto;
+    const { fotos, fichaSalud, ...animalData } = dto;
 
     // Transacción: se guardan el animal, su ficha y sus fotos, o no se guarda
     // nada. Así no queda un animal a medias si falla una de las partes.
     const animalId = await this.dataSource.transaction(async (manager) => {
       const animal = await manager.save(
-        manager.create(Animal, { ...datosAnimal, fundacionId }),
+        manager.create(Animal, { ...animalData, fundacionId }),
       );
 
       await manager.save(
-        manager.create(FichaSalud, { ...fichaSalud, animalId: animal.id }),
+        manager.create(HealthRecord, { ...fichaSalud, animalId: animal.id }),
       );
 
       // La primera URL de la lista queda como foto principal (orden 1).
       await manager.save(
         fotos.map((url, index) =>
-          manager.create(FotoAnimal, {
+          manager.create(AnimalPhoto, {
             animalId: animal.id,
             url,
             orden: index + 1,
@@ -80,10 +80,10 @@ export class AnimalesService {
     return this.findOne(animalId);
   }
 
-  // HU02: catálogo con filtros y paginación (RNF04).
-  async findAll(filtros: FilterAnimalesDto) {
+  // HU02: catálogo con filters y paginación (RNF04).
+  async findAll(filters: FilterAnimalsDto) {
     const { especie, tamano, ciudad, edadMinMeses, edadMaxMeses, page, limit } =
-      filtros;
+      filters;
 
     if (
       edadMinMeses !== undefined &&
@@ -98,7 +98,7 @@ export class AnimalesService {
     // El catálogo público solo muestra animales que se pueden pedir:
     // disponibles o en proceso (todavía reciben solicitudes).
     const where: FindOptionsWhere<Animal> = {
-      estado: In([EstadoAnimal.DISPONIBLE, EstadoAnimal.EN_PROCESO]),
+      estado: In([AnimalStatus.AVAILABLE, AnimalStatus.IN_PROCESS]),
     };
     if (especie) where.especie = especie;
     if (tamano) where.tamano = tamano;
@@ -123,7 +123,7 @@ export class AnimalesService {
       where.edadAproximadaMeses = LessThanOrEqual(edadMaxMeses);
     }
 
-    const [data, total] = await this.animalesRepository.findAndCount({
+    const [data, total] = await this.animalsRepository.findAndCount({
       where,
       relations: { fotos: true, fundacion: true },
       order: { fechaIngreso: 'DESC', id: 'ASC' },
@@ -131,21 +131,21 @@ export class AnimalesService {
       take: limit,
     });
 
-    data.forEach((animal) => this.ordenarFotos(animal));
+    data.forEach((animal) => this.sortPhotos(animal));
 
     return { data, total, page, limit };
   }
 
   // Detalle de un animal. 404 si no existe.
   async findOne(id: string): Promise<Animal> {
-    const animal = await this.animalesRepository.findOne({
+    const animal = await this.animalsRepository.findOne({
       where: { id },
       relations: { fotos: true, fichaSalud: true, fundacion: true },
     });
     if (!animal) {
       throw new NotFoundException(`Animal ${id} no encontrado`);
     }
-    return this.ordenarFotos(animal);
+    return this.sortPhotos(animal);
   }
 
   // PATCH: solo se actualizan los campos que llegaron.
@@ -153,19 +153,19 @@ export class AnimalesService {
   async update(
     id: string,
     dto: UpdateAnimalDto,
-    fundacionIdUsuario: string,
+    userFoundationId: string,
   ): Promise<Animal> {
     const animal = await this.findOne(id);
-    this.animalRules.assertEsDeLaFundacion(
+    this.animalRules.assertBelongsToFoundation(
       animal.fundacionId,
-      fundacionIdUsuario,
+      userFoundationId,
     );
 
-    const cambios = Object.fromEntries(
+    const changes = Object.fromEntries(
       Object.entries(dto).filter(([, valor]) => valor !== undefined),
     );
-    if (Object.keys(cambios).length > 0) {
-      await this.animalesRepository.update(id, cambios);
+    if (Object.keys(changes).length > 0) {
+      await this.animalsRepository.update(id, changes);
     }
 
     return this.findOne(id);
@@ -173,19 +173,19 @@ export class AnimalesService {
 
   // Cambio de estado manual. Las reglas las decide AnimalRulesService:
   // 403 si es de otra fundación, 409 si la transición no está permitida.
-  async cambiarEstado(
+  async changeStatus(
     id: string,
-    dto: UpdateEstadoAnimalDto,
-    fundacionIdUsuario: string,
+    dto: UpdateAnimalStatusDto,
+    userFoundationId: string,
   ): Promise<Animal> {
     const animal = await this.findOne(id);
-    this.animalRules.assertEsDeLaFundacion(
+    this.animalRules.assertBelongsToFoundation(
       animal.fundacionId,
-      fundacionIdUsuario,
+      userFoundationId,
     );
-    this.animalRules.assertCambioEstadoManual(animal.estado, dto.estado);
+    this.animalRules.assertManualStatusChange(animal.estado, dto.estado);
 
-    await this.animalesRepository.update(id, { estado: dto.estado });
+    await this.animalsRepository.update(id, { estado: dto.estado });
     return this.findOne(id);
   }
 
@@ -193,24 +193,24 @@ export class AnimalesService {
   // Lo llama SolicitudesService: en_proceso al crear, adoptado al aprobar,
   // disponible si se rechazan todas. Si se pasa un manager, el cambio queda
   // dentro de la misma transacción de quien lo llama (todo o nada).
-  async actualizarEstadoPorSolicitud(
+  async updateStatusFromRequest(
     animalId: string,
-    nuevo: EstadoAnimal,
+    next: AnimalStatus,
     manager?: EntityManager,
   ): Promise<void> {
-    const repositorio = manager
+    const repository = manager
       ? manager.getRepository(Animal)
-      : this.animalesRepository;
+      : this.animalsRepository;
 
-    const animal = await repositorio.findOne({ where: { id: animalId } });
+    const animal = await repository.findOne({ where: { id: animalId } });
     if (!animal) {
       throw new NotFoundException(`Animal ${animalId} no encontrado`);
     }
 
-    this.animalRules.assertCambioEstadoPorSolicitud(animal.estado, nuevo);
+    this.animalRules.assertStatusChangeFromRequest(animal.estado, next);
 
-    if (animal.estado !== nuevo) {
-      await repositorio.update(animalId, { estado: nuevo });
+    if (animal.estado !== next) {
+      await repository.update(animalId, { estado: next });
     }
   }
 
@@ -218,25 +218,25 @@ export class AnimalesService {
   // 403 si es de otra fundación, 409 si tiene solicitudes.
   async remove(
     id: string,
-    fundacionIdUsuario: string,
+    userFoundationId: string,
   ): Promise<{ deleted: number }> {
     const animal = await this.findOne(id);
-    this.animalRules.assertEsDeLaFundacion(
+    this.animalRules.assertBelongsToFoundation(
       animal.fundacionId,
-      fundacionIdUsuario,
+      userFoundationId,
     );
 
-    const cantidadSolicitudes = await this.solicitudesRepository.count({
+    const requestCount = await this.requestsRepository.count({
       where: { animalId: id },
     });
-    this.animalRules.assertPuedeEliminar(cantidadSolicitudes);
+    this.animalRules.assertCanDelete(requestCount);
 
-    const result = await this.animalesRepository.delete(id);
+    const result = await this.animalsRepository.delete(id);
     return { deleted: result.affected ?? 0 };
   }
 
   // La foto con orden 1 (la principal) queda siempre de primera.
-  private ordenarFotos(animal: Animal): Animal {
+  private sortPhotos(animal: Animal): Animal {
     animal.fotos?.sort((a, b) => a.orden - b.orden);
     return animal;
   }

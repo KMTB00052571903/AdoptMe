@@ -7,8 +7,8 @@ import { EstadoSolicitud } from '../common/enums/adoption-request-status.enum';
 import { AprobadoService } from './rules/request-approval.service';
 import { RechazadoService } from './rules/request-rejection.service';
 import { Adoptante } from '../users/entities/adopter.entity';
-import { AnimalesService } from '../animals/animals.service';
-import { EstadoAnimal } from '../common/enums/animal-status.enum';
+import { AnimalsService } from '../animals/animals.service';
+import { AnimalStatus } from '../common/enums/animal-status.enum';
 
 @Injectable()
 export class SolicitudesService {
@@ -19,7 +19,7 @@ export class SolicitudesService {
     @InjectRepository(Adoptante)
     private readonly adoptanteRepository: Repository<Adoptante>,
 
-    private readonly animalesService: AnimalesService,
+    private readonly animalsService: AnimalsService,
     private readonly dataSource: DataSource,
     private readonly aprobadoService: AprobadoService,
     private readonly rechazadoService: RechazadoService,
@@ -47,9 +47,9 @@ export class SolicitudesService {
     });
 
     return this.dataSource.transaction(async (manager) => {
-      await this.animalesService.actualizarEstadoPorSolicitud(
+      await this.animalsService.updateStatusFromRequest(
         createSolicitudDto.animalId,
-        EstadoAnimal.EN_PROCESO,
+        AnimalStatus.IN_PROCESS,
         manager,
       );
       return manager.save(manager.create(SolicitudAdopcion, { ...request }));

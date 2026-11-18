@@ -15,10 +15,10 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { EspecieAnimal } from '../../common/enums/animal-species.enum';
-import { SexoAnimal } from '../../common/enums/animal-sex.enum';
-import { TamanoAnimal } from '../../common/enums/animal-size.enum';
-import { CreateFichaSaludDto } from './create-health-record.dto';
+import { AnimalSpecies } from '../../common/enums/animal-species.enum';
+import { AnimalSex } from '../../common/enums/animal-sex.enum';
+import { AnimalSize } from '../../common/enums/animal-size.enum';
+import { CreateHealthRecordDto } from './create-health-record.dto';
 
 export class CreateAnimalDto {
   // No hay fundacionId: la fundación sale del token (req.user.fundacionId).
@@ -29,11 +29,11 @@ export class CreateAnimalDto {
   nombre!: string;
 
   // HU01: no se puede publicar sin especie definida.
-  @IsEnum(EspecieAnimal)
-  especie!: EspecieAnimal;
+  @IsEnum(AnimalSpecies)
+  especie!: AnimalSpecies;
 
-  @IsEnum(SexoAnimal)
-  sexo!: SexoAnimal;
+  @IsEnum(AnimalSex)
+  sexo!: AnimalSex;
 
   @IsOptional()
   @IsString()
@@ -46,8 +46,8 @@ export class CreateAnimalDto {
   @Max(300)
   edadAproximadaMeses!: number;
 
-  @IsEnum(TamanoAnimal)
-  tamano!: TamanoAnimal;
+  @IsEnum(AnimalSize)
+  tamano!: AnimalSize;
 
   @IsString()
   @IsNotEmpty()
@@ -66,8 +66,8 @@ export class CreateAnimalDto {
   fotos!: string[];
 
   // Objeto anidado: @ValidateNested revisa sus reglas y @Type le dice
-  // a class-transformer que lo convierta en CreateFichaSaludDto.
+  // a class-transformer que lo convierta en CreateHealthRecordDto.
   @ValidateNested()
-  @Type(() => CreateFichaSaludDto)
-  fichaSalud!: CreateFichaSaludDto;
+  @Type(() => CreateHealthRecordDto)
+  fichaSalud!: CreateHealthRecordDto;
 }

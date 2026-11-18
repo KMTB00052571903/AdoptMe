@@ -7,37 +7,37 @@ import {
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { EspecieAnimal } from '../common/enums/animal-species.enum';
-import { EstadoAnimal } from '../common/enums/animal-status.enum';
-import { SexoAnimal } from '../common/enums/animal-sex.enum';
-import { TamanoAnimal } from '../common/enums/animal-size.enum';
+import { AnimalSpecies } from '../common/enums/animal-species.enum';
+import { AnimalStatus } from '../common/enums/animal-status.enum';
+import { AnimalSex } from '../common/enums/animal-sex.enum';
+import { AnimalSize } from '../common/enums/animal-size.enum';
 import { SolicitudAdopcion } from '../adoption-requests/entities/adoption-request.entity';
 import { Fundacion } from '../users/entities/foundation.entity';
 import { AnimalRulesService } from './animal-rules.service';
-import { AnimalesService } from './animals.service';
+import { AnimalsService } from './animals.service';
 import { CreateAnimalDto } from './dto/create-animal.dto';
-import { FilterAnimalesDto } from './dto/filter-animals.dto';
+import { FilterAnimalsDto } from './dto/filter-animals.dto';
 import { Animal } from './entities/animal.entity';
-import { FichaSalud } from './entities/health-record.entity';
-import { FotoAnimal } from './entities/animal-photo.entity';
+import { HealthRecord } from './entities/health-record.entity';
+import { AnimalPhoto } from './entities/animal-photo.entity';
 
-describe('AnimalesService', () => {
-  let service: AnimalesService;
+describe('AnimalsService', () => {
+  let service: AnimalsService;
 
   // Mocks: reemplazan a los repositorios y al DataSource reales.
   // Se crean de nuevo antes de cada prueba para que no se mezclen.
-  let animalesRepository: Record<string, jest.Mock>;
-  let fundacionesRepository: Record<string, jest.Mock>;
-  let solicitudesRepository: Record<string, jest.Mock>;
+  let animalsRepository: Record<string, jest.Mock>;
+  let foundationsRepository: Record<string, jest.Mock>;
+  let requestsRepository: Record<string, jest.Mock>;
   let manager: Record<string, jest.Mock>;
   let dataSource: Record<string, jest.Mock>;
 
-  const dtoCrear: CreateAnimalDto = {
+  const createDto: CreateAnimalDto = {
     nombre: 'Luna',
-    especie: EspecieAnimal.PERRO,
-    sexo: SexoAnimal.HEMBRA,
+    especie: AnimalSpecies.DOG,
+    sexo: AnimalSex.FEMALE,
     edadAproximadaMeses: 18,
-    tamano: TamanoAnimal.MEDIANO,
+    tamano: AnimalSize.MEDIUM,
     descripcion: 'Tranquila y cariñosa',
     fechaIngreso: '2026-09-15',
     fotos: ['https://example.com/1.jpg', 'https://example.com/2.jpg'],
@@ -45,14 +45,14 @@ describe('AnimalesService', () => {
   };
 
   beforeEach(async () => {
-    animalesRepository = {
+    animalsRepository = {
       findOne: jest.fn(),
       findAndCount: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
     };
-    fundacionesRepository = { existsBy: jest.fn() };
-    solicitudesRepository = { count: jest.fn() };
+    foundationsRepository = { existsBy: jest.fn() };
+    requestsRepository = { count: jest.fn() };
 
     // El "manager" de la transacción: create devuelve lo mismo que recibe
     // y save le pone un id al animal (como haría la base de datos).
@@ -67,39 +67,39 @@ describe('AnimalesService', () => {
 
     const moduleRef = await Test.createTestingModule({
       providers: [
-        AnimalesService,
+        AnimalsService,
         AnimalRulesService, // el real: no tiene dependencias
-        { provide: getRepositoryToken(Animal), useValue: animalesRepository },
+        { provide: getRepositoryToken(Animal), useValue: animalsRepository },
         {
           provide: getRepositoryToken(Fundacion),
-          useValue: fundacionesRepository,
+          useValue: foundationsRepository,
         },
         {
           provide: getRepositoryToken(SolicitudAdopcion),
-          useValue: solicitudesRepository,
+          useValue: requestsRepository,
         },
         { provide: DataSource, useValue: dataSource },
       ],
     }).compile();
 
-    service = moduleRef.get(AnimalesService);
+    service = moduleRef.get(AnimalsService);
   });
 
   describe('create', () => {
     it('lanza 404 si la fundación no existe y no abre la transacción', async () => {
-      fundacionesRepository.existsBy.mockResolvedValue(false);
+      foundationsRepository.existsBy.mockResolvedValue(false);
 
-      await expect(service.create(dtoCrear, 'fundacion-1')).rejects.toThrow(
+      await expect(service.create(createDto, 'fundacion-1')).rejects.toThrow(
         NotFoundException,
       );
       expect(dataSource.transaction).not.toHaveBeenCalled();
     });
 
     it('guarda el animal, su ficha y las fotos en orden 1, 2...', async () => {
-      fundacionesRepository.existsBy.mockResolvedValue(true);
-      animalesRepository.findOne.mockResolvedValue({ id: 'animal-1', fotos: [] });
+      foundationsRepository.existsBy.mockResolvedValue(true);
+      animalsRepository.findOne.mockResolvedValue({ id: 'animal-1', fotos: [] });
 
-      await service.create(dtoCrear, 'fundacion-1');
+      await service.create(createDto, 'fundacion-1');
 
       expect(dataSource.transaction).toHaveBeenCalledTimes(1);
       // La fundación del animal es la del token, no una que venga en el body.
@@ -107,17 +107,17 @@ describe('AnimalesService', () => {
         Animal,
         expect.objectContaining({ nombre: 'Luna', fundacionId: 'fundacion-1' }),
       );
-      expect(manager.create).toHaveBeenCalledWith(FichaSalud, {
+      expect(manager.create).toHaveBeenCalledWith(HealthRecord, {
         vacunasAlDia: true,
         esterilizado: true,
         animalId: 'animal-1',
       });
-      expect(manager.create).toHaveBeenCalledWith(FotoAnimal, {
+      expect(manager.create).toHaveBeenCalledWith(AnimalPhoto, {
         animalId: 'animal-1',
         url: 'https://example.com/1.jpg',
         orden: 1,
       });
-      expect(manager.create).toHaveBeenCalledWith(FotoAnimal, {
+      expect(manager.create).toHaveBeenCalledWith(AnimalPhoto, {
         animalId: 'animal-1',
         url: 'https://example.com/2.jpg',
         orden: 2,
@@ -127,23 +127,23 @@ describe('AnimalesService', () => {
 
   describe('findAll', () => {
     it('lanza 400 si edadMinMeses es mayor que edadMaxMeses', async () => {
-      const filtros = { edadMinMeses: 24, edadMaxMeses: 12, page: 1, limit: 10 };
+      const filters = { edadMinMeses: 24, edadMaxMeses: 12, page: 1, limit: 10 };
 
       await expect(
-        service.findAll(filtros as FilterAnimalesDto),
+        service.findAll(filters as FilterAnimalsDto),
       ).rejects.toThrow(BadRequestException);
-      expect(animalesRepository.findAndCount).not.toHaveBeenCalled();
+      expect(animalsRepository.findAndCount).not.toHaveBeenCalled();
     });
 
     it('calcula skip y take según la página', async () => {
-      animalesRepository.findAndCount.mockResolvedValue([[], 0]);
+      animalsRepository.findAndCount.mockResolvedValue([[], 0]);
 
       const resultado = await service.findAll({
         page: 3,
         limit: 10,
-      } as FilterAnimalesDto);
+      } as FilterAnimalsDto);
 
-      expect(animalesRepository.findAndCount).toHaveBeenCalledWith(
+      expect(animalsRepository.findAndCount).toHaveBeenCalledWith(
         expect.objectContaining({ skip: 20, take: 10 }),
       );
       expect(resultado).toEqual({ data: [], total: 0, page: 3, limit: 10 });
@@ -152,7 +152,7 @@ describe('AnimalesService', () => {
 
   describe('findOne', () => {
     it('lanza 404 si el animal no existe', async () => {
-      animalesRepository.findOne.mockResolvedValue(null);
+      animalsRepository.findOne.mockResolvedValue(null);
 
       await expect(service.findOne('no-existe')).rejects.toThrow(
         NotFoundException,
@@ -160,7 +160,7 @@ describe('AnimalesService', () => {
     });
 
     it('devuelve las fotos ordenadas, con la principal primero', async () => {
-      animalesRepository.findOne.mockResolvedValue({
+      animalsRepository.findOne.mockResolvedValue({
         id: 'animal-1',
         fotos: [{ orden: 2 }, { orden: 1 }],
       });
@@ -173,7 +173,7 @@ describe('AnimalesService', () => {
 
   describe('update', () => {
     it('no toca la base si el PATCH llega vacío', async () => {
-      animalesRepository.findOne.mockResolvedValue({
+      animalsRepository.findOne.mockResolvedValue({
         id: 'animal-1',
         fundacionId: 'fundacion-1',
         fotos: [],
@@ -181,45 +181,45 @@ describe('AnimalesService', () => {
 
       await service.update('animal-1', {}, 'fundacion-1');
 
-      expect(animalesRepository.update).not.toHaveBeenCalled();
+      expect(animalsRepository.update).not.toHaveBeenCalled();
     });
   });
 
-  describe('cambiarEstado', () => {
+  describe('changeStatus', () => {
     it('lanza 409 al intentar poner adoptado a mano y no actualiza', async () => {
-      animalesRepository.findOne.mockResolvedValue({
+      animalsRepository.findOne.mockResolvedValue({
         id: 'animal-1',
         fundacionId: 'fundacion-1',
-        estado: EstadoAnimal.DISPONIBLE,
+        estado: AnimalStatus.AVAILABLE,
         fotos: [],
       });
 
       await expect(
-        service.cambiarEstado(
+        service.changeStatus(
           'animal-1',
-          { estado: EstadoAnimal.ADOPTADO },
+          { estado: AnimalStatus.ADOPTED },
           'fundacion-1',
         ),
       ).rejects.toThrow(ConflictException);
-      expect(animalesRepository.update).not.toHaveBeenCalled();
+      expect(animalsRepository.update).not.toHaveBeenCalled();
     });
 
     it('actualiza el estado cuando la transición está permitida', async () => {
-      animalesRepository.findOne.mockResolvedValue({
+      animalsRepository.findOne.mockResolvedValue({
         id: 'animal-1',
         fundacionId: 'fundacion-1',
-        estado: EstadoAnimal.DISPONIBLE,
+        estado: AnimalStatus.AVAILABLE,
         fotos: [],
       });
 
-      await service.cambiarEstado(
+      await service.changeStatus(
         'animal-1',
-        { estado: EstadoAnimal.NO_DISPONIBLE },
+        { estado: AnimalStatus.UNAVAILABLE },
         'fundacion-1',
       );
 
-      expect(animalesRepository.update).toHaveBeenCalledWith('animal-1', {
-        estado: EstadoAnimal.NO_DISPONIBLE,
+      expect(animalsRepository.update).toHaveBeenCalledWith('animal-1', {
+        estado: AnimalStatus.UNAVAILABLE,
       });
     });
   });
@@ -227,10 +227,10 @@ describe('AnimalesService', () => {
   describe('solo la fundación dueña modifica el animal', () => {
     // El animal es de fundacion-1; la petición la hace fundacion-2.
     beforeEach(() => {
-      animalesRepository.findOne.mockResolvedValue({
+      animalsRepository.findOne.mockResolvedValue({
         id: 'animal-1',
         fundacionId: 'fundacion-1',
-        estado: EstadoAnimal.DISPONIBLE,
+        estado: AnimalStatus.AVAILABLE,
         fotos: [],
       });
     });
@@ -239,109 +239,109 @@ describe('AnimalesService', () => {
       await expect(
         service.update('animal-1', { nombre: 'Otro' }, 'fundacion-2'),
       ).rejects.toThrow(ForbiddenException);
-      expect(animalesRepository.update).not.toHaveBeenCalled();
+      expect(animalsRepository.update).not.toHaveBeenCalled();
     });
 
     it('update: actualiza si el animal es de la misma fundación', async () => {
       await service.update('animal-1', { nombre: 'Otro' }, 'fundacion-1');
 
-      expect(animalesRepository.update).toHaveBeenCalledWith('animal-1', {
+      expect(animalsRepository.update).toHaveBeenCalledWith('animal-1', {
         nombre: 'Otro',
       });
     });
 
-    it('cambiarEstado: lanza 403 si el animal es de otra fundación', async () => {
+    it('changeStatus: lanza 403 si el animal es de otra fundación', async () => {
       await expect(
-        service.cambiarEstado(
+        service.changeStatus(
           'animal-1',
-          { estado: EstadoAnimal.NO_DISPONIBLE },
+          { estado: AnimalStatus.UNAVAILABLE },
           'fundacion-2',
         ),
       ).rejects.toThrow(ForbiddenException);
-      expect(animalesRepository.update).not.toHaveBeenCalled();
+      expect(animalsRepository.update).not.toHaveBeenCalled();
     });
 
     it('remove: lanza 403 si el animal es de otra fundación y no borra', async () => {
       await expect(service.remove('animal-1', 'fundacion-2')).rejects.toThrow(
         ForbiddenException,
       );
-      expect(solicitudesRepository.count).not.toHaveBeenCalled();
-      expect(animalesRepository.delete).not.toHaveBeenCalled();
+      expect(requestsRepository.count).not.toHaveBeenCalled();
+      expect(animalsRepository.delete).not.toHaveBeenCalled();
     });
   });
 
-  describe('actualizarEstadoPorSolicitud', () => {
+  describe('updateStatusFromRequest', () => {
     it('pasa el animal a en_proceso cuando llega la primera solicitud', async () => {
-      animalesRepository.findOne.mockResolvedValue({
+      animalsRepository.findOne.mockResolvedValue({
         id: 'animal-1',
-        estado: EstadoAnimal.DISPONIBLE,
+        estado: AnimalStatus.AVAILABLE,
       });
 
-      await service.actualizarEstadoPorSolicitud(
+      await service.updateStatusFromRequest(
         'animal-1',
-        EstadoAnimal.EN_PROCESO,
+        AnimalStatus.IN_PROCESS,
       );
 
-      expect(animalesRepository.update).toHaveBeenCalledWith('animal-1', {
-        estado: EstadoAnimal.EN_PROCESO,
+      expect(animalsRepository.update).toHaveBeenCalledWith('animal-1', {
+        estado: AnimalStatus.IN_PROCESS,
       });
     });
 
     it('no actualiza si el estado ya es el mismo', async () => {
-      animalesRepository.findOne.mockResolvedValue({
+      animalsRepository.findOne.mockResolvedValue({
         id: 'animal-1',
-        estado: EstadoAnimal.EN_PROCESO,
+        estado: AnimalStatus.IN_PROCESS,
       });
 
-      await service.actualizarEstadoPorSolicitud(
+      await service.updateStatusFromRequest(
         'animal-1',
-        EstadoAnimal.EN_PROCESO,
+        AnimalStatus.IN_PROCESS,
       );
 
-      expect(animalesRepository.update).not.toHaveBeenCalled();
+      expect(animalsRepository.update).not.toHaveBeenCalled();
     });
 
     it('lanza 409 si el animal no está recibiendo solicitudes', async () => {
-      animalesRepository.findOne.mockResolvedValue({
+      animalsRepository.findOne.mockResolvedValue({
         id: 'animal-1',
-        estado: EstadoAnimal.NO_DISPONIBLE,
+        estado: AnimalStatus.UNAVAILABLE,
       });
 
       await expect(
-        service.actualizarEstadoPorSolicitud('animal-1', EstadoAnimal.EN_PROCESO),
+        service.updateStatusFromRequest('animal-1', AnimalStatus.IN_PROCESS),
       ).rejects.toThrow(ConflictException);
-      expect(animalesRepository.update).not.toHaveBeenCalled();
+      expect(animalsRepository.update).not.toHaveBeenCalled();
     });
 
-    it('usa el repositorio del manager cuando recibe una transacción', async () => {
-      const repoTransaccion = {
+    it('usa el repository del manager cuando recibe una transacción', async () => {
+      const transactionRepository = {
         findOne: jest.fn().mockResolvedValue({
           id: 'animal-1',
-          estado: EstadoAnimal.EN_PROCESO,
+          estado: AnimalStatus.IN_PROCESS,
         }),
         update: jest.fn(),
       };
-      const managerTransaccion = {
-        getRepository: jest.fn().mockReturnValue(repoTransaccion),
+      const transactionManager = {
+        getRepository: jest.fn().mockReturnValue(transactionRepository),
       };
 
-      await service.actualizarEstadoPorSolicitud(
+      await service.updateStatusFromRequest(
         'animal-1',
-        EstadoAnimal.ADOPTADO,
-        managerTransaccion as never,
+        AnimalStatus.ADOPTED,
+        transactionManager as never,
       );
 
-      expect(managerTransaccion.getRepository).toHaveBeenCalledWith(Animal);
-      expect(repoTransaccion.update).toHaveBeenCalledWith('animal-1', {
-        estado: EstadoAnimal.ADOPTADO,
+      expect(transactionManager.getRepository).toHaveBeenCalledWith(Animal);
+      expect(transactionRepository.update).toHaveBeenCalledWith('animal-1', {
+        estado: AnimalStatus.ADOPTED,
       });
-      expect(animalesRepository.update).not.toHaveBeenCalled();
+      expect(animalsRepository.update).not.toHaveBeenCalled();
     });
   });
 
   describe('remove', () => {
     beforeEach(() => {
-      animalesRepository.findOne.mockResolvedValue({
+      animalsRepository.findOne.mockResolvedValue({
         id: 'animal-1',
         fundacionId: 'fundacion-1',
         fotos: [],
@@ -349,17 +349,17 @@ describe('AnimalesService', () => {
     });
 
     it('lanza 409 si el animal tiene solicitudes y no borra', async () => {
-      solicitudesRepository.count.mockResolvedValue(1);
+      requestsRepository.count.mockResolvedValue(1);
 
       await expect(service.remove('animal-1', 'fundacion-1')).rejects.toThrow(
         ConflictException,
       );
-      expect(animalesRepository.delete).not.toHaveBeenCalled();
+      expect(animalsRepository.delete).not.toHaveBeenCalled();
     });
 
     it('borra el animal si no tiene solicitudes', async () => {
-      solicitudesRepository.count.mockResolvedValue(0);
-      animalesRepository.delete.mockResolvedValue({ affected: 1 });
+      requestsRepository.count.mockResolvedValue(0);
+      animalsRepository.delete.mockResolvedValue({ affected: 1 });
 
       await expect(
         service.remove('animal-1', 'fundacion-1'),

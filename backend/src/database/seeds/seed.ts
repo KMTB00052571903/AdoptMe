@@ -1,13 +1,13 @@
 import * as argon2 from 'argon2';
 import dataSource from '../data-source';
-import { EspecieAnimal } from '../../common/enums/animal-species.enum';
-import { EstadoAnimal } from '../../common/enums/animal-status.enum';
+import { AnimalSpecies } from '../../common/enums/animal-species.enum';
+import { AnimalStatus } from '../../common/enums/animal-status.enum';
 import { RolUsuario } from '../../common/enums/user-role.enum';
-import { SexoAnimal } from '../../common/enums/animal-sex.enum';
-import { TamanoAnimal } from '../../common/enums/animal-size.enum';
+import { AnimalSex } from '../../common/enums/animal-sex.enum';
+import { AnimalSize } from '../../common/enums/animal-size.enum';
 import { Animal } from '../../animals/entities/animal.entity';
-import { FichaSalud } from '../../animals/entities/health-record.entity';
-import { FotoAnimal } from '../../animals/entities/animal-photo.entity';
+import { HealthRecord } from '../../animals/entities/health-record.entity';
+import { AnimalPhoto } from '../../animals/entities/animal-photo.entity';
 import { Adoptante } from '../../users/entities/adopter.entity';
 import { Fundacion } from '../../users/entities/foundation.entity';
 import { Usuario } from '../../users/entities/user.entity';
@@ -29,12 +29,12 @@ const FUNDACIONES = [
     animales: [
       {
         nombre: 'Luna',
-        especie: EspecieAnimal.PERRO,
-        sexo: SexoAnimal.HEMBRA,
+        especie: AnimalSpecies.DOG,
+        sexo: AnimalSex.FEMALE,
         razaAproximada: 'Criolla',
         edadAproximadaMeses: 18,
-        tamano: TamanoAnimal.MEDIANO,
-        estado: EstadoAnimal.DISPONIBLE,
+        tamano: AnimalSize.MEDIUM,
+        estado: AnimalStatus.AVAILABLE,
         descripcion: 'Tranquila y cariñosa, se lleva bien con otros perros.',
         fechaIngreso: '2026-09-15',
         fotos: [foto('Luna 1'), foto('Luna 2')],
@@ -42,12 +42,12 @@ const FUNDACIONES = [
       },
       {
         nombre: 'Max',
-        especie: EspecieAnimal.PERRO,
-        sexo: SexoAnimal.MACHO,
+        especie: AnimalSpecies.DOG,
+        sexo: AnimalSex.MALE,
         razaAproximada: 'Labrador mestizo',
         edadAproximadaMeses: 36,
-        tamano: TamanoAnimal.GRANDE,
-        estado: EstadoAnimal.DISPONIBLE,
+        tamano: AnimalSize.LARGE,
+        estado: AnimalStatus.AVAILABLE,
         descripcion: 'Muy activo, ideal para una familia con patio.',
         fechaIngreso: '2026-08-02',
         fotos: [foto('Max')],
@@ -55,11 +55,11 @@ const FUNDACIONES = [
       },
       {
         nombre: 'Michi',
-        especie: EspecieAnimal.GATO,
-        sexo: SexoAnimal.MACHO,
+        especie: AnimalSpecies.CAT,
+        sexo: AnimalSex.MALE,
         edadAproximadaMeses: 6,
-        tamano: TamanoAnimal.PEQUENO,
-        estado: EstadoAnimal.DISPONIBLE,
+        tamano: AnimalSize.SMALL,
+        estado: AnimalStatus.AVAILABLE,
         descripcion: 'Juguetón y curioso, ya usa arenero.',
         fechaIngreso: '2026-10-01',
         fotos: [foto('Michi')],
@@ -67,11 +67,11 @@ const FUNDACIONES = [
       },
       {
         nombre: 'Nala',
-        especie: EspecieAnimal.GATO,
-        sexo: SexoAnimal.HEMBRA,
+        especie: AnimalSpecies.CAT,
+        sexo: AnimalSex.FEMALE,
         edadAproximadaMeses: 24,
-        tamano: TamanoAnimal.PEQUENO,
-        estado: EstadoAnimal.NO_DISPONIBLE,
+        tamano: AnimalSize.SMALL,
+        estado: AnimalStatus.UNAVAILABLE,
         descripcion: 'En recuperación de una cirugía; pronto disponible.',
         fechaIngreso: '2026-09-28',
         fotos: [foto('Nala')],
@@ -93,12 +93,12 @@ const FUNDACIONES = [
     animales: [
       {
         nombre: 'Rocky',
-        especie: EspecieAnimal.PERRO,
-        sexo: SexoAnimal.MACHO,
+        especie: AnimalSpecies.DOG,
+        sexo: AnimalSex.MALE,
         razaAproximada: 'Pastor alemán mestizo',
         edadAproximadaMeses: 60,
-        tamano: TamanoAnimal.GRANDE,
-        estado: EstadoAnimal.DISPONIBLE,
+        tamano: AnimalSize.LARGE,
+        estado: AnimalStatus.AVAILABLE,
         descripcion: 'Adulto calmado, buen compañero para paseos.',
         fechaIngreso: '2026-07-10',
         fotos: [foto('Rocky')],
@@ -106,11 +106,11 @@ const FUNDACIONES = [
       },
       {
         nombre: 'Kiara',
-        especie: EspecieAnimal.GATO,
-        sexo: SexoAnimal.HEMBRA,
+        especie: AnimalSpecies.CAT,
+        sexo: AnimalSex.FEMALE,
         edadAproximadaMeses: 3,
-        tamano: TamanoAnimal.PEQUENO,
-        estado: EstadoAnimal.DISPONIBLE,
+        tamano: AnimalSize.SMALL,
+        estado: AnimalStatus.AVAILABLE,
         descripcion: 'Gatita de 3 meses, muy cariñosa.',
         fechaIngreso: '2026-10-12',
         fotos: [foto('Kiara')],
@@ -118,11 +118,11 @@ const FUNDACIONES = [
       },
       {
         nombre: 'Toby',
-        especie: EspecieAnimal.PERRO,
-        sexo: SexoAnimal.MACHO,
+        especie: AnimalSpecies.DOG,
+        sexo: AnimalSex.MALE,
         edadAproximadaMeses: 10,
-        tamano: TamanoAnimal.PEQUENO,
-        estado: EstadoAnimal.DISPONIBLE,
+        tamano: AnimalSize.SMALL,
+        estado: AnimalStatus.AVAILABLE,
         descripcion: 'Cachorro pequeño, apto para apartamento.',
         fechaIngreso: '2026-09-05',
         fotos: [foto('Toby')],
@@ -130,11 +130,11 @@ const FUNDACIONES = [
       },
       {
         nombre: 'Simba',
-        especie: EspecieAnimal.GATO,
-        sexo: SexoAnimal.MACHO,
+        especie: AnimalSpecies.CAT,
+        sexo: AnimalSex.MALE,
         edadAproximadaMeses: 48,
-        tamano: TamanoAnimal.MEDIANO,
-        estado: EstadoAnimal.DISPONIBLE,
+        tamano: AnimalSize.MEDIUM,
+        estado: AnimalStatus.AVAILABLE,
         descripcion: 'Independiente y tranquilo, prefiere un hogar sin perros.',
         fechaIngreso: '2026-06-20',
         fotos: [foto('Simba')],
@@ -191,11 +191,11 @@ async function main() {
             manager.create(Animal, { ...datosAnimal, fundacionId: fundacion.id }),
           );
           await manager.save(
-            manager.create(FichaSalud, { ...fichaSalud, animalId: animal.id }),
+            manager.create(HealthRecord, { ...fichaSalud, animalId: animal.id }),
           );
           await manager.save(
             fotos.map((url, index) =>
-              manager.create(FotoAnimal, {
+              manager.create(AnimalPhoto, {
                 animalId: animal.id,
                 url,
                 orden: index + 1,
