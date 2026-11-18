@@ -15,7 +15,7 @@ export default async function FoundationPanelPage({ searchParams }: FoundationPa
   const { aviso } = await searchParams;
 
   return (
-    <main className={`${poppins.className} min-h-screen bg-white px-4 py-10 text-black`}>
+    <main className={`${poppins.className} flex-1 bg-white px-4 py-10 text-black`}>
       <div className="mx-auto max-w-5xl">
         <h1 className={`${nunito.className} text-[28px] text-[#005595] lg:text-4xl`}>
           Panel de la fundación
