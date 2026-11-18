@@ -48,6 +48,16 @@ export class AnimalsController {
     return this.animalsService.findAll(filters);
   }
 
+  // GET /animales/mine -> todos los animales de la fundación del token,
+  // en cualquier estado (pantalla "Mis animales"). Va ANTES de ':id' para que
+  // Nest no lea "mine" como si fuera un id.
+  @Get('mine')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RolUsuario.FUNDACION)
+  findMine(@Req() req: RequestConUsuario) {
+    return this.animalsService.findMine(this.foundationIdFromToken(req));
+  }
+
   // GET /animales/:id -> 400 si el id no es UUID, 404 si no existe
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {

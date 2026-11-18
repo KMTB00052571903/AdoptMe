@@ -148,6 +148,18 @@ export class AnimalsService {
     return this.sortPhotos(animal);
   }
 
+  // "Mis animales": todos los animales de una fundación, en cualquier estado.
+  // El catálogo público (findAll) solo muestra disponibles y en proceso.
+  async findMine(fundacionId: string): Promise<Animal[]> {
+    const animals = await this.animalsRepository.find({
+      where: { fundacionId },
+      relations: { fotos: true },
+      order: { fechaIngreso: 'DESC', id: 'ASC' },
+    });
+    animals.forEach((animal) => this.sortPhotos(animal));
+    return animals;
+  }
+
   // PATCH: solo se actualizan los campos que llegaron.
   // 403 si el animal es de otra fundación.
   async update(

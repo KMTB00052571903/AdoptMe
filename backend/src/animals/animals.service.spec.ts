@@ -46,6 +46,7 @@ describe('AnimalsService', () => {
 
   beforeEach(async () => {
     animalsRepository = {
+      find: jest.fn(),
       findOne: jest.fn(),
       findAndCount: jest.fn(),
       update: jest.fn(),
@@ -147,6 +148,21 @@ describe('AnimalsService', () => {
         expect.objectContaining({ skip: 20, take: 10 }),
       );
       expect(resultado).toEqual({ data: [], total: 0, page: 3, limit: 10 });
+    });
+  });
+
+  describe('findMine', () => {
+    it('busca solo los animales de la fundación, en cualquier estado', async () => {
+      animalsRepository.find.mockResolvedValue([
+        { id: 'animal-1', fotos: [{ orden: 2 }, { orden: 1 }] },
+      ]);
+
+      const animals = await service.findMine('fundacion-1');
+
+      expect(animalsRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { fundacionId: 'fundacion-1' } }),
+      );
+      expect(animals[0].fotos.map((foto) => foto.orden)).toEqual([1, 2]);
     });
   });
 
