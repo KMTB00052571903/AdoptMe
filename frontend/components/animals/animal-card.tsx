@@ -21,12 +21,15 @@ export default function AnimalCard({ animal, href, showStatus = false }: AnimalC
   ].join(" | ");
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-xl border-2 border-[#BDBDBD] bg-white">
-      <div className="relative aspect-square bg-[#F7F7F7]">
+    // h-full: todas las tarjetas de una fila miden lo mismo.
+    <article className="flex h-full flex-col overflow-hidden rounded-xl border-2 border-[#BDBDBD] bg-white">
+      {/* overflow-hidden + foto en absolute: la foto llena un cuadrado exacto
+          y nunca lo estira, sea horizontal o vertical. */}
+      <div className="relative aspect-square overflow-hidden bg-[#F7F7F7]">
         {photo && (
           // Las fotos son URLs de cualquier dominio, por eso <img> y no next/image.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo} alt={`Foto de ${animal.nombre}`} className="size-full object-cover" />
+          <img src={photo} alt={`Foto de ${animal.nombre}`} className="absolute inset-0 size-full object-cover" />
         )}
         {showStatus && (
           <span className="absolute top-3 left-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-black">
