@@ -24,9 +24,10 @@ import { FilterAnimalsDto } from './dto/filter-animals.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
 import { UpdateAnimalStatusDto } from './dto/update-animal-status.dto';
 
-// Los GET son públicos (catálogo). POST, PATCH y DELETE son solo para la
-// fundación: primero JwtAuthGuard (401 sin token) y después RolesGuard
-// (403 si el rol no es fundación). La fundación sale siempre del token.
+// El catálogo (GET /animales) es público y el detalle pide sesión.
+// POST, PATCH y DELETE son solo para la fundación: primero JwtAuthGuard
+// (401 sin token) y después RolesGuard (403 si el rol no es fundación).
+// La fundación sale siempre del token.
 @Controller('animales')
 export class AnimalsController {
   constructor(private readonly animalsService: AnimalsService) {}
@@ -58,8 +59,10 @@ export class AnimalsController {
     return this.animalsService.findMine(this.foundationIdFromToken(req));
   }
 
-  // GET /animales/:id -> 400 si el id no es UUID, 404 si no existe
+  // GET /animales/:id -> 401 sin sesión, 400 si el id no es UUID, 404 si no existe.
+  // Solo con sesión (adoptante o fundación): el detalle no es público.
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.animalsService.findOne(id);
   }
