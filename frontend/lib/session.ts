@@ -1,6 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { apiFetch } from "./adoptme-api";
+import { PANEL_POR_ROL } from "./routes";
 import type { Rol, SessionUser } from "../types/auth";
 
 // Pregunta a NestJS quién es el usuario de la sesión (GET /api/auth/perfil).
@@ -23,9 +24,9 @@ export async function requireRole(rol: Rol): Promise<SessionUser> {
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  // PROVISIONAL: destino acordado para la Fase 2. Se cambiará por el panel
-  // de cada rol cuando el equipo confirme las URLs de los UserFlows.
-  if (user.rol !== rol) redirect("/?aviso=sin-permiso");
+  // Rol equivocado: vuelve a SU propio panel con un aviso. Su panel siempre
+  // le está permitido, así que no se produce un bucle de redirecciones.
+  if (user.rol !== rol) redirect(`${PANEL_POR_ROL[user.rol]}?aviso=sin-permiso`);
 
   return user;
 }
