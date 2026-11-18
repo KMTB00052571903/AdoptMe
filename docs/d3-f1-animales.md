@@ -43,17 +43,17 @@ Datos del seed. Contraseña de todos: `AdoptMe2026!`.
 | --- | --- | --- | --- | --- |
 | 1 | Catálogo público | Abrir `localhost:3001/animals` sin iniciar sesión | Se ven los animales disponibles y en proceso con su foto; Nala (no disponible) no aparece | ✓ |
 | 2 | Filtros | Elegir Especie: Gato y luego Edad: Joven | La URL cambia y solo quedan gatos jóvenes | ✓ |
-| 3 | Sin resultados | Elegir una combinación sin animales (ej. Gato + Senior) | "No encontramos animales con esos filtros." | |
+| 3 | Sin resultados | Elegir una combinación sin animales (ej. Gato + Senior) | "No encontramos animales con esos filtros." | ✓ |
 | 4 | Detalle sin sesión | Sin sesión, dar clic en "Ver" de un animal | Redirige a `/login` | ✓ |
 | 5 | Detalle como adoptante | Entrar con `ana@adoptme.test` y abrir un animal | Se ven foto, datos, ficha de salud y fundación | ✓ |
 | 6 | Mis animales | Entrar con `patitas@adoptme.test` y abrir "Mis animales" | Se ven solo los animales de Patitas, en todos los estados | ✓ |
 | 7 | Crear animal | Llenar el formulario "Nuevo animal" y guardar | Aviso "Animal publicado" y el animal aparece en la lista y en el catálogo | ✓ |
-| 8 | Crear con datos inválidos | Dejar la URL de la foto vacía o con un texto que no es URL | Mensaje de error y no se crea | | |
+| 8 | Crear con datos inválidos | Dejar la URL de la foto vacía o escribir "hola" | El navegador avisa "Completa este campo" / "Introduce una URL" y no se crea | ✓ |
 | 9 | Editar animal | Abrir un animal propio, cambiar el nombre (ej. "Rocco Jr") y guardar | Aviso "Información actualizada" y el nombre nuevo en la lista | ✓ |
-| 10 | Cambiar estado | En un animal disponible, marcar "No disponible" | Aviso "Estado actualizado" y el animal desaparece del catálogo público | | |
+| 10 | Cambiar estado | En un animal disponible, marcar "No disponible" | Aviso "Estado actualizado" y el animal desaparece del catálogo público | ✓ |
 | 11 | Eliminar sin solicitudes | Eliminar un animal recién creado y confirmar | Aviso "Ficha eliminada" y ya no está en la lista | ✓ |
 | 12 | Eliminar con solicitudes (409) | Intentar eliminar a Luna (en proceso) | Mensaje en rojo de la API y Luna no se borra | ✓ |
-| 13 | Animal de otra fundación | Como Patitas, abrir el detalle de un animal de Huellitas | Aviso "Este animal pertenece a otra fundación" y solo información, sin formulario ni botones | | |
+| 13 | Animal de otra fundación | Como Patitas, abrir el detalle de un animal de Huellitas | Aviso "Este animal pertenece a otra fundación" y solo información, sin formulario ni botones | ✓ |
 | 14 | API apagada | Detener la API y recargar `/animals` | Pantalla "No pudimos cargar el catálogo" con botón de reintentar | ✓ |
 | 15 | Menú por rol | Entrar como fundación y como adoptante | La cabecera muestra "Mis animales" o "Catálogo" según el rol | ✓ |
 
