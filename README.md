@@ -22,9 +22,9 @@ AdoptMe es una plataforma web de adopción y seguimiento de perros y gatos para 
 
 | Funcionalidad | Descripción | Módulo |
 | --- | --- | --- |
-| F1 — Animales | Fichas de animales, fotos, ficha de salud y estados | `animals` |
-| F2 — Solicitudes | Solicitud de adopción, aprobación y rechazo | `adoption-requests` |
-| F3 — Seguimiento | Checkpoints post-adopción a los 30 y 90 días | `tracking` |
+| F1 — Animales | Fichas de animales, fotos, ficha de salud y estados | `animales` |
+| F2 — Solicitudes | Solicitud de adopción, aprobación y rechazo | `solicitudes` |
+| F3 — Seguimiento | Checkpoints post-adopción a los 30 y 90 días | `seguimiento` |
 | Autenticación | Registro, login con JWT y roles (fundación / adoptante) | `auth` |
 
 ## 🧠 Estructura del Proyecto (Scaffolding)
@@ -33,44 +33,42 @@ AdoptMe es una plataforma web de adopción y seguimiento de perros y gatos para 
 AdoptMe/
 ├── backend/                          # API REST en NestJS
 │   ├── src/
-│   │   ├── animals/                  # F1: animales, fotos y ficha de salud
+│   │   ├── animales/                 # F1: animales, fotos y ficha de salud
 │   │   │   ├── dto/                  # Datos que acepta cada endpoint (con validaciones)
 │   │   │   ├── entities/
 │   │   │   │   ├── animal.entity.ts
-│   │   │   │   ├── animal-photo.entity.ts
-│   │   │   │   └── health-record.entity.ts
+│   │   │   │   ├── foto-animal.entity.ts
+│   │   │   │   └── ficha-salud.entity.ts
 │   │   │   ├── animal-rules.service.ts    # Reglas de negocio (qué cambios están permitidos)
-│   │   │   ├── animals.controller.ts      # Endpoints /animales
-│   │   │   ├── animals.service.ts         # Lógica: crear, catálogo, detalle, editar, estado, eliminar
+│   │   │   ├── animales.controller.ts     # Endpoints /animales
+│   │   │   ├── animales.service.ts        # Lógica: crear, catálogo, detalle, editar, estado, eliminar
 │   │   │   ├── *.spec.ts                  # Pruebas unitarias
-│   │   │   └── animals.module.ts
+│   │   │   └── animales.module.ts
 │   │   │
-│   │   ├── adoption-requests/        # F2: solicitudes de adopción
+│   │   ├── solicitudes/              # F2: solicitudes de adopción
 │   │   │   ├── entities/
-│   │   │   │   └── adoption-request.entity.ts
-│   │   │   └── adoption-requests.module.ts
+│   │   │   │   └── solicitud-adopcion.entity.ts
+│   │   │   └── solicitudes.module.ts
 │   │   │
-│   │   ├── tracking/                 # F3: checkpoints post-adopción
+│   │   ├── seguimiento/              # F3: checkpoints post-adopción
 │   │   │   ├── entities/
 │   │   │   │   └── checkpoint.entity.ts
-│   │   │   └── tracking.module.ts
+│   │   │   └── seguimiento.module.ts
 │   │   │
-│   │   ├── users/                    # Usuario, fundación y adoptante
+│   │   ├── usuarios/                 # Usuario, fundación y adoptante
 │   │   │   ├── entities/
-│   │   │   │   ├── user.entity.ts
-│   │   │   │   ├── foundation.entity.ts
-│   │   │   │   └── adopter.entity.ts
-│   │   │   └── users.module.ts
+│   │   │   │   ├── usuario.entity.ts
+│   │   │   │   ├── fundacion.entity.ts
+│   │   │   │   └── adoptante.entity.ts
+│   │   │   └── usuarios.module.ts
 │   │   │
-│   │   ├── notifications/            # Avisos para los usuarios
+│   │   ├── notificaciones/           # Avisos para los usuarios
 │   │   │   ├── entities/
-│   │   │   │   └── notification.entity.ts
-│   │   │   └── notifications.module.ts
+│   │   │   │   └── notificacion.entity.ts
+│   │   │   └── notificaciones.module.ts
 │   │   │
 │   │   ├── common/
-│   │   │   ├── enums/                # Valores permitidos (especie, estados, roles, etc.)
-│   │   │   └── interceptors/
-│   │   │       └── logging.interceptor.ts  # Registra cada petición (método, ruta, código, tiempo)
+│   │   │   └── enums/                # Valores permitidos (especie, estados, roles, etc.)
 │   │   │
 │   │   ├── database/
 │   │   │   ├── data-source.ts        # Configuración de TypeORM para migraciones y seed
@@ -82,33 +80,19 @@ AdoptMe/
 │   │   └── main.ts                   # Punto de entrada de la API
 │   │
 │   ├── test/                         # Pruebas e2e
-│   ├── Dockerfile                    # Imagen de la API (compilar + ejecutar)
-│   ├── .dockerignore                 # Archivos que no entran a la imagen (node_modules, .env)
 │   ├── package.json
 │   └── tsconfig.json
 │
 ├── frontend/                         # Aplicación web en Next.js (a partir del D3)
-│   ├── app/                          # Rutas (App Router): cada carpeta es una URL
-│   │   ├── login/ y register/        # Inicio de sesión y registro
-│   │   ├── animals/                  # /animals: catálogo público con filtros
-│   │   ├── adopter/
-│   │   │   └── animals/[id]/         # Detalle de un animal (solo adoptante con sesión)
-│   │   ├── foundation/
-│   │   │   └── animals/              # Mis animales: crear, editar, cambiar estado, eliminar
-│   │   │       ├── actions.ts        # Server Actions que llaman a la API
-│   │   │       └── [id]/             # Detalle y edición de un animal
-│   │   └── layout.tsx                # Layout principal
-│   ├── components/                   # Piezas de interfaz reutilizables
-│   │   └── animals/                  # Tarjeta, filtros, paginación, formularios
-│   ├── hooks/
-│   │   └── use-animal-filters.ts     # Hook propio: filtros del catálogo en la URL
-│   ├── lib/                          # Llamadas a la API, sesión y opciones compartidas
-│   ├── types/                        # Tipos de TypeScript de lo que devuelve la API
-│   ├── .env.example                  # Plantilla de ADOPTME_API_URL
+│   ├── app/
+│   │   ├── layout.tsx                # Layout principal
+│   │   ├── page.tsx                  # Página de inicio
+│   │   └── globals.css               # Estilos globales
+│   ├── public/                       # Imágenes e íconos
 │   ├── package.json
 │   └── tsconfig.json
 │
-├── docker-compose.yml                # PostgreSQL y la API en Docker
+├── docker-compose.yml                # Base de datos PostgreSQL en Docker
 ├── .env.example                      # Plantilla de variables de entorno
 ├── .gitignore
 └── README.md
@@ -134,9 +118,9 @@ Las tablas se crean con **migraciones** de TypeORM (`synchronize` está desactiv
 
 2. Crear el archivo `.env` en la raíz copiando `.env.example`, y cambiar `DB_PASSWORD` por una contraseña propia. **El `.env` no se sube al repositorio.**
 
-3. Levantar **solo la base de datos** (desde la raíz):
+3. Levantar la base de datos (desde la raíz):
 ```bash
-   docker compose up -d postgres
+   docker compose up -d
 ```
 
 4. Instalar dependencias, crear las tablas y cargar los datos de prueba:
@@ -147,30 +131,13 @@ Las tablas se crean con **migraciones** de TypeORM (`synchronize` está desactiv
    npm run seed
 ```
 
-5. Iniciar la API en modo desarrollo (se reinicia con cada cambio):
+5. Iniciar la API:
 ```bash
    npm run start:dev
 ```
    La API queda en `http://localhost:3000`.
 
-6. En **otra terminal**, configurar e iniciar el frontend:
-```bash
-   cd frontend
-   cp .env.example .env.local
-   npm install
-   npm run dev -- -p 3001
-```
-   La aplicación queda en `http://localhost:3001` y le habla a la API en `http://localhost:3000/api` (la URL está en `ADOPTME_API_URL` dentro de `.env.local`). Se usa el puerto 3001 porque el 3000 ya lo ocupa la API.
-
-**Para trabajar se usan tres terminales:** una con la API (`npm run start:dev` en `backend/`), otra con el frontend (`npm run dev -- -p 3001` en `frontend/`) y otra para los comandos de git. Si se escriben comandos en la terminal de la API, la API se apaga y el frontend muestra "No pudimos cargar el catálogo". Docker Desktop tiene que estar abierto antes de empezar.
-
-**Opción: correr la API también en Docker.** Después del paso 4, desde la raíz:
-```bash
-docker compose up -d --build
-```
-Levanta PostgreSQL y la API juntas (contenedores `adoptme_postgres` y `adoptme_backend`). Los logs se ven con `docker compose logs -f backend`. No se puede tener al mismo tiempo la API en Docker y `npm run start:dev`, porque las dos usan el puerto 3000: para volver al modo desarrollo, `docker compose stop backend`.
-
-**Para empezar con una base de datos limpia** (borra todos los datos locales): desde la raíz `docker compose down -v` y `docker compose up -d postgres`, y luego repetir `npm run migration:run` y `npm run seed`.
+**Para empezar con una base de datos limpia** (borra todos los datos locales): desde la raíz `docker compose down -v` y `docker compose up -d`, y luego repetir `npm run migration:run` y `npm run seed`.
 
 **Comandos útiles del backend:**
 
@@ -187,17 +154,6 @@ Levanta PostgreSQL y la API juntas (contenedores `adoptme_postgres` y `adoptme_b
 | `npm run seed` | Carga los datos de prueba (se puede correr varias veces: no duplica) |
 
 Las pruebas usan `--experimental-vm-modules` (ya configurado en `package.json`) porque `@nestjs/typeorm` 12 es un módulo ESM. El aviso `ExperimentalWarning: VM Modules` es normal.
-
-**Comandos de Docker** (desde la raíz):
-
-| Comando | Qué hace |
-| --- | --- |
-| `docker compose up -d postgres` | Levanta solo la base de datos |
-| `docker compose up -d --build` | Construye la imagen de la API y levanta base + API |
-| `docker compose logs -f backend` | Muestra los logs de la API en el contenedor |
-| `docker compose stop backend` | Apaga la API en Docker (para volver a `npm run start:dev`) |
-| `docker compose down` | Apaga todo (los datos se conservan) |
-| `docker compose down -v` | Apaga todo y borra la base de datos local |
 
 ## 🔑 Usuarios de prueba
 
@@ -218,23 +174,18 @@ Son cuentas de demostración con datos ficticios. Las contraseñas se guardan co
 
 ### Animales (F1)
 
-Todas las rutas llevan el prefijo `/api` (por ejemplo `http://localhost:3000/api/animales`). Las protegidas piden el token en la cabecera `Authorization: Bearer <token>`.
+| Método | Ruta | Qué hace | Respuestas |
+| --- | --- | --- | --- |
+| `POST` | `/animales` | Publica un animal con su ficha de salud y al menos una foto | 201, 400, 404 |
+| `GET` | `/animales` | Catálogo con filtros y paginación | 200, 400 |
+| `GET` | `/animales/:id` | Detalle con fotos, ficha de salud y fundación | 200, 400, 404 |
+| `PATCH` | `/animales/:id` | Edita los datos del animal | 200, 400, 404 |
+| `PATCH` | `/animales/:id/estado` | Cambia a `disponible` o `no_disponible` | 200, 400, 404, 409 |
+| `DELETE` | `/animales/:id` | Elimina un animal sin solicitudes | 200, 400, 404, 409 |
 
-| Método | Ruta | Qué hace | Quién puede | Respuestas |
-| --- | --- | --- | --- | --- |
-| `POST` | `/animales` | Publica un animal con su ficha de salud y al menos una foto | Fundación | 201, 400, 401, 403, 404 |
-| `GET` | `/animales` | Catálogo con filtros y paginación | Cualquiera, sin sesión | 200, 400 |
-| `GET` | `/animales/mine` | Todos los animales de la fundación del token, en cualquier estado | Fundación | 200, 401, 403 |
-| `GET` | `/animales/:id` | Detalle con fotos, ficha de salud y fundación | Cualquier usuario con sesión | 200, 400, 401, 404 |
-| `PATCH` | `/animales/:id` | Edita los datos del animal | Fundación dueña | 200, 400, 401, 403, 404 |
-| `PATCH` | `/animales/:id/estado` | Cambia a `disponible` o `no_disponible` | Fundación dueña | 200, 400, 401, 403, 404, 409 |
-| `DELETE` | `/animales/:id` | Elimina un animal sin solicitudes | Fundación dueña | 200, 400, 401, 403, 404, 409 |
+**Filtros del catálogo** (todos opcionales): `especie` (`perro`, `gato`), `tamano` (`pequeno`, `mediano`, `grande`), `ciudad`, `edadMinMeses`, `edadMaxMeses`, `page` (por defecto 1) y `limit` (por defecto 10, máximo 50). El catálogo solo muestra animales `disponible` o `en_proceso`.
 
-401 = no hay token o venció. 403 = el rol no corresponde o el animal es de otra fundación. 409 = la regla de negocio no lo permite (por ejemplo, eliminar un animal que ya tiene solicitudes).
-
-**Filtros del catálogo** (todos opcionales): `especie` (`perro`, `gato`), `tamano` (`pequeno`, `mediano`, `grande`), `ciudad` (sin importar tildes ni mayúsculas), `edadMinMeses`, `edadMaxMeses`, `page` (por defecto 1) y `limit` (por defecto 10, máximo 50). El catálogo solo muestra animales `disponible` o `en_proceso`.
-
-Ejemplo: `GET /animales?especie=perro&ciudad=bogota&edadMaxMeses=24&page=1&limit=10`
+Ejemplo: `GET /animales?especie=perro&ciudad=cali&edadMaxMeses=24&page=1&limit=10`
 
 ## 🌿 Ramas
 
@@ -265,7 +216,7 @@ Ejemplo: `feat(backend): add animal, photo, and health entities`
 | `refactor` | Cambios en la estructura del código sin corregir errores ni agregar funciones |
 | `style` | Cambios de formato que no afectan la lógica del código |
 
-El área entre paréntesis indica qué parte se tocó: `backend`, `animals`, `auth`, `db`, `docker`, etc.
+El área entre paréntesis indica qué parte se tocó: `backend`, `animals`, `auth`, `db`, etc.
 
 ## 🚀 Tecnologías Usadas
 
@@ -286,7 +237,7 @@ El área entre paréntesis indica qué parte se tocó: `backend`, `animals`, `au
 * Tailwind CSS 4
 
 **Infraestructura**
-* Docker y Docker Compose (PostgreSQL y la API)
+* Docker y Docker Compose
 * Git y GitHub
 
 ## 👩‍💻 Equipo
