@@ -1,0 +1,22 @@
+# Variables de entorno locales (pueden contener secretos)
+.env
+.env.*
+!.env.example
+
+# Dependencias
+node_modules/
+
+# Compilados, cachés y cobertura de pruebas
+dist/
+build/
+coverage/
+.next/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
