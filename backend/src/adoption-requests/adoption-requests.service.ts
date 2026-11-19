@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, Not } from 'typeorm';
 import { SolicitudAdopcion } from './entities/adoption-request.entity';
 import { CreateSolicitudDto } from './dto/create-adoption-request.dto';
 import { EstadoSolicitud } from '../common/enums/adoption-request-status.enum';
@@ -78,6 +78,13 @@ export class SolicitudesService {
     this.aprobadoService.ensureNotTaken(request);
 
     request.estado = EstadoSolicitud.APROBADA;
+
+    if (request.estado === EstadoSolicitud.APROBADA) {
+      await this.solicitudRepository.update(
+        { id: Not(id), animalId: request.animalId },
+        { estado: EstadoSolicitud.CERRADA_POR_OTRA_ADOPCION },
+      );
+    }
 
     return this.solicitudRepository.save(request);
   }
