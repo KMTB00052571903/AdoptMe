@@ -7,7 +7,7 @@ import { AprobadoService } from './rules/request-approval.service';
 import { RechazadoService } from './rules/request-rejection.service';
 import { EstadoSolicitud } from '../common/enums/adoption-request-status.enum';
 import { Adoptante } from '../users/entities/adopter.entity';
-import { AnimalesService } from '../animals/animals.service';
+import { AnimalsService } from '../animals/animals.service';
 import { DataSource } from 'typeorm';
 
 describe('SolicitudesServiceTest', () => {
@@ -50,8 +50,8 @@ describe('SolicitudesServiceTest', () => {
           useValue: { findOneBy: jest.fn() },
         },
         {
-          provide: AnimalesService,
-          useValue: { actualizarEstadoPorSolicitud: jest.fn() },
+          provide: AnimalsService,
+          useValue: { updateStatusFromRequest: jest.fn() },
         },
         { provide: DataSource, useValue: { transaction: jest.fn() } },
       ],

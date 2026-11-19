@@ -18,18 +18,19 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { RolUsuario } from '../common/enums/user-role.enum';
 import { requestValidationPipe } from '../common/request-validation.pipe';
-import { AnimalesService } from './animals.service';
+import { AnimalsService } from './animals.service';
 import { CreateAnimalDto } from './dto/create-animal.dto';
-import { FilterAnimalesDto } from './dto/filter-animals.dto';
+import { FilterAnimalsDto } from './dto/filter-animals.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
-import { UpdateEstadoAnimalDto } from './dto/update-animal-status.dto';
+import { UpdateAnimalStatusDto } from './dto/update-animal-status.dto';
 
-// Los GET son públicos (catálogo). POST, PATCH y DELETE son solo para la
-// fundación: primero JwtAuthGuard (401 sin token) y después RolesGuard
-// (403 si el rol no es fundación). La fundación sale siempre del token.
+// El catálogo (GET /animales) es público y el detalle pide sesión.
+// POST, PATCH y DELETE son solo para la fundación: primero JwtAuthGuard
+// (401 sin token) y después RolesGuard (403 si el rol no es fundación).
+// La fundación sale siempre del token.
 @Controller('animales')
-export class AnimalesController {
-  constructor(private readonly animalesService: AnimalesService) {}
+export class AnimalsController {
+  constructor(private readonly animalsService: AnimalsService) {}
 
   // POST /animales -> 201
   @Post()
@@ -39,19 +40,31 @@ export class AnimalesController {
     @Body(requestValidationPipe) dto: CreateAnimalDto,
     @Req() req: RequestConUsuario,
   ) {
-    return this.animalesService.create(dto, this.fundacionDelToken(req));
+    return this.animalsService.create(dto, this.foundationIdFromToken(req));
   }
 
   // GET /animales?especie=perro&tamano=mediano&ciudad=Cali&page=1&limit=10
   @Get()
-  findAll(@Query(requestValidationPipe) filtros: FilterAnimalesDto) {
-    return this.animalesService.findAll(filtros);
+  findAll(@Query(requestValidationPipe) filters: FilterAnimalsDto) {
+    return this.animalsService.findAll(filters);
   }
 
-  // GET /animales/:id -> 400 si el id no es UUID, 404 si no existe
+  // GET /animales/mine -> todos los animales de la fundación del token,
+  // en cualquier estado (pantalla "Mis animales"). Va ANTES de ':id' para que
+  // Nest no lea "mine" como si fuera un id.
+  @Get('mine')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RolUsuario.FUNDACION)
+  findMine(@Req() req: RequestConUsuario) {
+    return this.animalsService.findMine(this.foundationIdFromToken(req));
+  }
+
+  // GET /animales/:id -> 401 sin sesión, 400 si el id no es UUID, 404 si no existe.
+  // Solo con sesión (adoptante o fundación): el detalle no es público.
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.animalesService.findOne(id);
+    return this.animalsService.findOne(id);
   }
 
   // PATCH /animales/:id -> actualización parcial (403 si es de otra fundación)
@@ -63,22 +76,22 @@ export class AnimalesController {
     @Body(requestValidationPipe) dto: UpdateAnimalDto,
     @Req() req: RequestConUsuario,
   ) {
-    return this.animalesService.update(id, dto, this.fundacionDelToken(req));
+    return this.animalsService.update(id, dto, this.foundationIdFromToken(req));
   }
 
   // PATCH /animales/:id/estado -> 409 si la transición no está permitida
   @Patch(':id/estado')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RolUsuario.FUNDACION)
-  cambiarEstado(
+  changeStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body(requestValidationPipe) dto: UpdateEstadoAnimalDto,
+    @Body(requestValidationPipe) dto: UpdateAnimalStatusDto,
     @Req() req: RequestConUsuario,
   ) {
-    return this.animalesService.cambiarEstado(
+    return this.animalsService.changeStatus(
       id,
       dto,
-      this.fundacionDelToken(req),
+      this.foundationIdFromToken(req),
     );
   }
 
@@ -90,12 +103,12 @@ export class AnimalesController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: RequestConUsuario,
   ) {
-    return this.animalesService.remove(id, this.fundacionDelToken(req));
+    return this.animalsService.remove(id, this.foundationIdFromToken(req));
   }
 
   // En UsuarioAutenticado fundacionId es opcional (solo existe si el rol es
   // fundación). RolesGuard ya lo garantiza, pero si faltara se responde 403.
-  private fundacionDelToken(req: RequestConUsuario): string {
+  private foundationIdFromToken(req: RequestConUsuario): string {
     const fundacionId = req.user.fundacionId;
     if (!fundacionId) {
       throw new ForbiddenException('El token no tiene una fundación asociada');

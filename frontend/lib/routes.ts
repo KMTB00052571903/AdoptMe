@@ -17,6 +17,9 @@ export type EnlaceNav = {
 // Solo se agregan páginas que YA existen, para no mostrar enlaces que den 404.
 // Cada responsable añade aquí su sección cuando su página esté lista.
 export const NAV_POR_ROL: Record<Rol, EnlaceNav[]> = {
-  adoptante: [{ href: "/adopter/tracking", texto: "Mis seguimientos" }],
-  fundacion: [],
+  adoptante: [
+    { href: "/animals", texto: "Catálogo" },
+    { href: "/adopter/tracking", texto: "Mis seguimientos" },
+  ],
+  fundacion: [{ href: "/foundation/animals", texto: "Mis animales" }],
 };

@@ -9,9 +9,9 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { EspecieAnimal } from '../../common/enums/animal-species.enum';
-import { SexoAnimal } from '../../common/enums/animal-sex.enum';
-import { TamanoAnimal } from '../../common/enums/animal-size.enum';
+import { AnimalSpecies } from '../../common/enums/animal-species.enum';
+import { AnimalSex } from '../../common/enums/animal-sex.enum';
+import { AnimalSize } from '../../common/enums/animal-size.enum';
 
 // PATCH: actualización parcial. Todo es opcional, pero si un campo viene,
 // debe cumplir las mismas reglas que al crear.
@@ -24,12 +24,12 @@ export class UpdateAnimalDto {
   nombre?: string;
 
   @IsOptional()
-  @IsEnum(EspecieAnimal)
-  especie?: EspecieAnimal;
+  @IsEnum(AnimalSpecies)
+  especie?: AnimalSpecies;
 
   @IsOptional()
-  @IsEnum(SexoAnimal)
-  sexo?: SexoAnimal;
+  @IsEnum(AnimalSex)
+  sexo?: AnimalSex;
 
   @IsOptional()
   @IsString()
@@ -43,8 +43,8 @@ export class UpdateAnimalDto {
   edadAproximadaMeses?: number;
 
   @IsOptional()
-  @IsEnum(TamanoAnimal)
-  tamano?: TamanoAnimal;
+  @IsEnum(AnimalSize)
+  tamano?: AnimalSize;
 
   @IsOptional()
   @IsString()

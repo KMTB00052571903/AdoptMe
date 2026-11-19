@@ -13,7 +13,7 @@ import { Animal } from './animal.entity';
 @Entity('foto_animal')
 @Unique('UQ_foto_animal_animal_orden', ['animalId', 'orden'])
 @Check('CHK_foto_animal_orden', '"orden" >= 1')
-export class FotoAnimal {
+export class AnimalPhoto {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

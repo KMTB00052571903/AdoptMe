@@ -1,5 +1,5 @@
 // Sexo del animal.
-export enum SexoAnimal {
-  MACHO = 'macho',
-  HEMBRA = 'hembra',
+export enum AnimalSex {
+  MALE = 'macho',
+  FEMALE = 'hembra',
 }

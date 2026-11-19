@@ -8,7 +8,7 @@ import {
 import { Animal } from './animal.entity';
 
 @Entity('ficha_salud')
-export class FichaSalud {
+export class HealthRecord {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
