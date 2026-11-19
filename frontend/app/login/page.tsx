@@ -77,11 +77,12 @@ type LoginPageProps = {
     error?: string;
     expired?: string;
     registered?: string;
+    logout?: string;
   }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { tipo, error, expired, registered } = await searchParams;
+  const { tipo, error, expired, registered, logout } = await searchParams;
   const rol: Rol = tipo === "fundacion" ? "fundacion" : "adoptante";
   const estilo = ESTILOS_ROL[rol];
   const mensajeError = error ? MENSAJES_ERROR[error] : undefined;
@@ -110,6 +111,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         {registered === "1" && !mensajeError && expired !== "1" && (
           <FormAlert variant="success" className="mt-4">
             Cuenta creada. Ya puedes iniciar sesión.
+          </FormAlert>
+        )}
+        {logout === "1" && !mensajeError && expired !== "1" && (
+          <FormAlert variant="success" className="mt-4">
+            Cerraste sesión.
           </FormAlert>
         )}
 
